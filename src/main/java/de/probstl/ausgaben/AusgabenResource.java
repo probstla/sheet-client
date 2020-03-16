@@ -41,7 +41,12 @@ public class AusgabenResource {
 		data.put("beschreibung", ausgabe.getBeschreibung());
 		data.put("geschäft", ausgabe.getGeschaeft());
 		data.put("betrag", ausgabe.getBetrag());
-		data.put("zeitpunkt", new Date());
+
+		if (ausgabe.getZeitpunkt() == null) {
+			data.put("zeitpunkt", new Date());
+		} else {
+			data.put("zeitpunkt", ausgabe.getZeitpunkt());
+		}
 
 		ApiFuture<WriteResult> result = docRef.set(data);
 

@@ -1,5 +1,6 @@
-FROM openjdk:8-jdk-alpine
-RUN addgroup -S spring && adduser -S spring -G spring
+FROM adoptopenjdk/openjdk11:debian-slim
+#RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd spring && useradd -g spring spring
 USER spring:spring
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} app.jar
