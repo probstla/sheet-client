@@ -13,11 +13,11 @@ public class Ausgabe {
 	private String m_Beschreibung;
 	
 	@NotNull(message="Betrag muss angegeben werden!")
-	private Double m_Betrag;
+	private String m_Betrag;
 
 	private Date m_Zeitpunkt;
 	
-	public Ausgabe(String geschaeft, String beschreibung, Double betrag, Date date) {
+	public Ausgabe(String geschaeft, String beschreibung, String betrag, Date date) {
 		m_Geschaeft = geschaeft;
 		m_Beschreibung = beschreibung;
 		m_Betrag = betrag;
@@ -40,11 +40,11 @@ public class Ausgabe {
 		m_Beschreibung = beschreibung;
 	}
 
-	public Double getBetrag() {
+	public String getBetrag() {
 		return m_Betrag;
 	}
 
-	public void setBetrag(Double betrag) {
+	public void setBetrag(String betrag) {
 		m_Betrag = betrag;
 	}
 
