@@ -44,30 +44,31 @@ public class AusgabenResource {
 	@PostMapping("/ausgaben/new")
 	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Ausgabe ausgabe, Locale requestLocale) {
 		DocumentReference docRef = m_FirestoreService.getService().collection("ausgaben").document();
-		
-		LOG.info("New Ausgabe with description '{}' in shop '{}' with amount '{}' in locale {}.",
-				ausgabe.getBeschreibung(), ausgabe.getGeschaeft(), ausgabe.getBetrag(), requestLocale);
+
+		LOG.info("New Ausgabe with description '{}' in shop '{}' with amount '{}' in locale {}.", ausgabe.getMessage(),
+				ausgabe.getShop(), ausgabe.getAmount(), requestLocale);
 
 		NumberFormat format = NumberFormat.getNumberInstance(requestLocale);
 		Number betrag = null;
 		try {
-			betrag = format.parse(ausgabe.getBetrag());
+			betrag = format.parse(ausgabe.getAmount());
 		} catch (ParseException e1) {
-			LOG.error("No valid number: " + ausgabe.getBetrag(), e1);
+			LOG.error("No valid number: " + ausgabe.getAmount(), e1);
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
-		LOG.info("Formatted value of {} is {}", ausgabe.getBetrag(), betrag);
+		LOG.info("Formatted value of {} is {}", ausgabe.getAmount(), betrag);
 
 		Map<String, Object> data = new HashMap<>();
-		data.put("beschreibung", ausgabe.getBeschreibung());
-		data.put("geschäft", ausgabe.getGeschaeft());
-		data.put("betrag", betrag);
+		data.put("message", ausgabe.getMessage());
+		data.put("shop", ausgabe.getShop());
+		data.put("amount", betrag);
+		data.put("city", ausgabe.getCity());
 
-		if (ausgabe.getZeitpunkt() == null) {
-			data.put("zeitpunkt", new Date());
+		if (ausgabe.getTimestamp() == null) {
+			data.put("timestamp", new Date());
 		} else {
-			data.put("zeitpunkt", ausgabe.getZeitpunkt());
+			data.put("timestamp", ausgabe.getTimestamp());
 		}
 
 		ApiFuture<WriteResult> result = docRef.set(data);

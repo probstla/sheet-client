@@ -6,54 +6,63 @@ import javax.validation.constraints.NotNull;
 
 public class Ausgabe {
 
-	@NotNull(message="Geschaeft muss angegeben werden!")
-	private String m_Geschaeft;
+	@NotNull(message="shop must be provided")
+	private String m_Shop;
 
-	@NotNull(message="Beschreibung muss angegeben werden!")
-	private String m_Beschreibung;
+	@NotNull(message="message must be provided")
+	private String m_Message;
 	
-	@NotNull(message="Betrag muss angegeben werden!")
-	private String m_Betrag;
-
-	private Date m_Zeitpunkt;
+	@NotNull(message="amount must be provided")
+	private String m_Amount;
 	
-	public Ausgabe(String geschaeft, String beschreibung, String betrag, Date date) {
-		m_Geschaeft = geschaeft;
-		m_Beschreibung = beschreibung;
-		m_Betrag = betrag;
-		m_Zeitpunkt = date;
-	}
+	private String m_City;
 
-	public String getGeschaeft() {
-		return m_Geschaeft;
-	}
-
-	public void setGeschaeft(String geschaeft) {
-		m_Geschaeft = geschaeft;
-	}
-
-	public String getBeschreibung() {
-		return m_Beschreibung;
-	}
-
-	public void setBeschreibung(String beschreibung) {
-		m_Beschreibung = beschreibung;
-	}
-
-	public String getBetrag() {
-		return m_Betrag;
-	}
-
-	public void setBetrag(String betrag) {
-		m_Betrag = betrag;
-	}
-
-	public Date getZeitpunkt() {
-		return m_Zeitpunkt;
-	}
-
-	public void setZeitpunkt(Date zeitpunkt) {
-		m_Zeitpunkt = zeitpunkt;
-	}
+	private Date m_Timestamp;
 	
+	public Ausgabe(String shop, String message, String amout, Date timesatmp) {
+		m_Shop = shop;
+		m_Message = message;
+		m_Amount = amout;
+		m_Timestamp = timesatmp;
+	}
+
+	public String getShop() {
+		return m_Shop;
+	}
+
+	public void setShop(String shop) {
+		m_Shop = shop;
+	}
+
+	public String getMessage() {
+		return m_Message;
+	}
+
+	public void setMessage(String message) {
+		m_Message = message;
+	}
+
+	public String getAmount() {
+		return m_Amount;
+	}
+
+	public void setAmount(String amount) {
+		m_Amount = amount;
+	}
+
+	public Date getTimestamp() {
+		return m_Timestamp;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		m_Timestamp = timestamp;
+	}
+
+	public String getCity() {
+		return m_City;
+	}
+
+	public void setCity(String city) {
+		m_City = city;
+	}
 }
