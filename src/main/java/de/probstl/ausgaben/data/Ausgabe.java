@@ -6,23 +6,32 @@ import javax.validation.constraints.NotNull;
 
 public class Ausgabe {
 
-	@NotNull(message="shop must be provided")
+	@NotNull(message = "shop must be provided")
 	private String m_Shop;
 
-	@NotNull(message="message must be provided")
+	@NotNull(message = "message must be provided")
 	private String m_Message;
-	
-	@NotNull(message="amount must be provided")
+
+	@NotNull(message = "amount must be provided")
 	private String m_Amount;
-	
+
+	private Double m_AmountDouble;
+
 	private String m_City;
 
 	private Date m_Timestamp;
-	
-	public Ausgabe(String shop, String message, String amout, Date timesatmp) {
+
+	public Ausgabe(String shop, String message, String amount, Date timesatmp) {
 		m_Shop = shop;
 		m_Message = message;
-		m_Amount = amout;
+		m_Amount = amount;
+		m_Timestamp = timesatmp;
+	}
+
+	public Ausgabe(String shop, String message, Double amout, Date timesatmp) {
+		m_Shop = shop;
+		m_Message = message;
+		m_AmountDouble = amout;
 		m_Timestamp = timesatmp;
 	}
 
@@ -48,6 +57,14 @@ public class Ausgabe {
 
 	public void setAmount(String amount) {
 		m_Amount = amount;
+	}
+
+	public Double getAmountDouble() {
+		return m_AmountDouble;
+	}
+
+	public void setAmountDouble(Double amount) {
+		m_AmountDouble = amount;
 	}
 
 	public Date getTimestamp() {

@@ -2,8 +2,17 @@ package de.probstl.ausgaben;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -13,16 +22,17 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 
 import de.probstl.ausgaben.data.Ausgabe;
@@ -36,11 +46,40 @@ public class AusgabenResource {
 	@Autowired
 	private FirestoreConfigService m_FirestoreService;
 
-	/**
-	 * Erstellt eine neue Ausgabe
-	 * 
-	 * @param ausgabe
-	 */
+	@GetMapping("/ausgaben/week")
+	public List<Ausgabe> currentWeek() {
+
+		LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+		LocalDateTime begin = LocalDateTime.of(monday, LocalTime.of(0, 0, 0));
+		LocalDateTime end = begin.plusDays(7);
+
+		LOG.info("Find ausgaben from {} to {}", begin, end);
+
+		final List<Ausgabe> toReturn = new ArrayList<>();
+
+		try {
+			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection("ausgaben")
+					.whereGreaterThan("timestamp",
+							Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant()))
+					.whereLessThan("timestamp", Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant()))
+					.orderBy("timestamp").get();
+
+			QuerySnapshot queryResult = future.get();
+			LOG.info("Read time {}", queryResult.getReadTime());
+			for (DocumentSnapshot document : queryResult.getDocuments()) {
+				Ausgabe ausgabe = new Ausgabe(document.getString("shop"), document.getString("message"),
+						document.getDouble("amount"), document.getDate("timestamp"));
+				toReturn.add(ausgabe);
+			}
+		} catch (InterruptedException e) {
+			LOG.error("Unterbrochen", e);
+		} catch (ExecutionException e) {
+			LOG.error("Fehler in der Ausführung", e);
+		}
+
+		return toReturn;
+	}
+
 	@PostMapping("/ausgaben/new")
 	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Ausgabe ausgabe, Locale requestLocale) {
 		DocumentReference docRef = m_FirestoreService.getService().collection("ausgaben").document();
