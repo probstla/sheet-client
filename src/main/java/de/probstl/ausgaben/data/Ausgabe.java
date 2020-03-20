@@ -21,20 +21,6 @@ public class Ausgabe {
 
 	private Date m_Timestamp;
 
-	public Ausgabe(String shop, String message, String amount, Date timesatmp) {
-		m_Shop = shop;
-		m_Message = message;
-		m_Amount = amount;
-		m_Timestamp = timesatmp;
-	}
-
-	public Ausgabe(String shop, String message, Double amout, Date timesatmp) {
-		m_Shop = shop;
-		m_Message = message;
-		m_AmountDouble = amout;
-		m_Timestamp = timesatmp;
-	}
-
 	public String getShop() {
 		return m_Shop;
 	}

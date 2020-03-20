@@ -67,8 +67,12 @@ public class AusgabenResource {
 			QuerySnapshot queryResult = future.get();
 			LOG.info("Read time {}", queryResult.getReadTime());
 			for (DocumentSnapshot document : queryResult.getDocuments()) {
-				Ausgabe ausgabe = new Ausgabe(document.getString("shop"), document.getString("message"),
-						document.getDouble("amount"), document.getDate("timestamp"));
+				Ausgabe ausgabe = new Ausgabe();
+				ausgabe.setShop(document.getString("shop"));
+				ausgabe.setCity(document.getString("city"));
+				ausgabe.setMessage(document.getString("message"));
+				ausgabe.setAmountDouble(document.getDouble("amount"));
+				ausgabe.setTimestamp(document.getDate("timestamp"));
 				toReturn.add(ausgabe);
 			}
 		} catch (InterruptedException e) {

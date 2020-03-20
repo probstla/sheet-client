@@ -53,9 +53,12 @@ class AusgabenFirebaseApplicationTests {
 					.orderBy("timestamp").get();
 
 			for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {
-				Ausgabe ausgabe = new Ausgabe(document.getString("shop"), document.getString("message"),
-						document.getDouble("amount"), document.getDate("timestamp"));
-				System.out.println(ausgabe);
+				Ausgabe ausgabe = new Ausgabe();
+				ausgabe.setShop(document.getString("shop"));
+				ausgabe.setCity(document.getString("city"));
+				ausgabe.setMessage(document.getString("message"));
+				ausgabe.setAmountDouble(document.getDouble("amount"));
+				ausgabe.setTimestamp(document.getDate("timestamp"));
 			}
 		} catch (ExecutionException e) {
 			e.printStackTrace();
