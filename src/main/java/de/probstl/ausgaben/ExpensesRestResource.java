@@ -35,27 +35,27 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 
-import de.probstl.ausgaben.data.Ausgabe;
+import de.probstl.ausgaben.data.Expense;
 
 @RestController
-public class AusgabenResource {
+public class ExpensesRestResource {
 
 	/** Logger */
-	private static final Logger LOG = LoggerFactory.getLogger(AusgabenResource.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ExpensesRestResource.class);
 
 	@Autowired
 	private FirestoreConfigService m_FirestoreService;
 
 	@GetMapping("/ausgaben/week")
-	public List<Ausgabe> currentWeek() {
+	public List<Expense> currentWeek() {
 
 		LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 		LocalDateTime begin = LocalDateTime.of(monday, LocalTime.of(0, 0, 0));
 		LocalDateTime end = begin.plusDays(7);
 
-		LOG.info("Find ausgaben from {} to {}", begin, end);
+		LOG.info("Find expenses from {} to {}", begin, end);
 
-		final List<Ausgabe> toReturn = new ArrayList<>();
+		final List<Expense> toReturn = new ArrayList<>();
 
 		try {
 			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection("ausgaben")
@@ -67,7 +67,7 @@ public class AusgabenResource {
 			QuerySnapshot queryResult = future.get();
 			LOG.info("Read time {}", queryResult.getReadTime());
 			for (DocumentSnapshot document : queryResult.getDocuments()) {
-				Ausgabe ausgabe = new Ausgabe();
+				Expense ausgabe = new Expense();
 				ausgabe.setShop(document.getString("shop"));
 				ausgabe.setCity(document.getString("city"));
 				ausgabe.setMessage(document.getString("message"));
@@ -85,10 +85,10 @@ public class AusgabenResource {
 	}
 
 	@PostMapping("/ausgaben/new")
-	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Ausgabe ausgabe, Locale requestLocale) {
+	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense ausgabe, Locale requestLocale) {
 		DocumentReference docRef = m_FirestoreService.getService().collection("ausgaben").document();
 
-		LOG.info("New Ausgabe with description '{}' in shop '{}' with amount '{}' in locale {}.", ausgabe.getMessage(),
+		LOG.info("New expense with description '{}' in shop '{}' with amount '{}' in locale {}.", ausgabe.getMessage(),
 				ausgabe.getShop(), ausgabe.getAmount(), requestLocale);
 
 		NumberFormat format = NumberFormat.getNumberInstance(requestLocale);

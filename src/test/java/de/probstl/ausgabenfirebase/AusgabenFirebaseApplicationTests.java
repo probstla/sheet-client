@@ -10,6 +10,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.google.api.core.ApiFuture;
@@ -18,7 +19,7 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.QuerySnapshot;
 
-import de.probstl.ausgaben.data.Ausgabe;
+import de.probstl.ausgaben.data.Expense;
 
 class AusgabenFirebaseApplicationTests {
 
@@ -34,6 +35,7 @@ class AusgabenFirebaseApplicationTests {
 		System.out.println(begin + " >= t <= " + end);
 	}
 
+	@Disabled
 	@Test
 	void findAusgaben() {
 
@@ -53,7 +55,7 @@ class AusgabenFirebaseApplicationTests {
 					.orderBy("timestamp").get();
 
 			for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {
-				Ausgabe ausgabe = new Ausgabe();
+				Expense ausgabe = new Expense();
 				ausgabe.setShop(document.getString("shop"));
 				ausgabe.setCity(document.getString("city"));
 				ausgabe.setMessage(document.getString("message"));

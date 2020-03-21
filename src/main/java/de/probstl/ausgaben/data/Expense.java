@@ -4,67 +4,136 @@ import java.util.Date;
 
 import javax.validation.constraints.NotNull;
 
-public class Ausgabe {
+/**
+ * A expense
+ */
+public class Expense {
 
+	/** The shop where the expense was made */
 	@NotNull(message = "shop must be provided")
 	private String m_Shop;
 
+	/** The description message of the expense */
 	@NotNull(message = "message must be provided")
 	private String m_Message;
 
+	/** The amount as string (parsed later */
 	@NotNull(message = "amount must be provided")
 	private String m_Amount;
 
+	/** The amount as double value */
 	private Double m_AmountDouble;
 
+	/** The city where the expense was made */
 	private String m_City;
 
+	/** The timestamp */
 	private Date m_Timestamp;
 
+	/**
+	 * Returns the shop
+	 * 
+	 * @return Shop
+	 */
 	public String getShop() {
 		return m_Shop;
 	}
 
+	/**
+	 * Set the shop
+	 * 
+	 * @param shop Shop
+	 */
 	public void setShop(String shop) {
 		m_Shop = shop;
 	}
 
+	/**
+	 * Returns the message (description)
+	 * 
+	 * @return Message
+	 */
 	public String getMessage() {
 		return m_Message;
 	}
 
+	/**
+	 * Set the message (description)
+	 * 
+	 * @param message Message
+	 */
 	public void setMessage(String message) {
 		m_Message = message;
 	}
 
+	/**
+	 * Returns the amount as string
+	 * 
+	 * @return Amount (text)
+	 */
 	public String getAmount() {
 		return m_Amount;
 	}
 
+	/**
+	 * Set the amount as String
+	 * 
+	 * @param amount Amount
+	 */
 	public void setAmount(String amount) {
 		m_Amount = amount;
 	}
 
+	/**
+	 * Returns the amount as double value
+	 * 
+	 * @return Amount (number)
+	 */
 	public Double getAmountDouble() {
 		return m_AmountDouble;
 	}
 
+	/**
+	 * Set the amount as double value
+	 * 
+	 * @param amount Amount
+	 */
 	public void setAmountDouble(Double amount) {
 		m_AmountDouble = amount;
 	}
 
+	/**
+	 * Returns the timestamp
+	 * 
+	 * @return Timestamp
+	 */
 	public Date getTimestamp() {
 		return m_Timestamp;
 	}
 
+	/**
+	 * Set the timestamp
+	 * 
+	 * @param timestamp Timestamp
+	 */
 	public void setTimestamp(Date timestamp) {
 		m_Timestamp = timestamp;
 	}
 
+	/**
+	 * Returns the city
+	 * 
+	 * @return City
+	 */
 	public String getCity() {
 		return m_City;
 	}
 
+	/**
+	 * Set the city
+	 * 
+	 * @param city City
+	 */
 	public void setCity(String city) {
 		m_City = city;
 	}

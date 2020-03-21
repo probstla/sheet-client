@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>MailTemplate</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin: 0; padding: 0;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td style="padding: 15px 0 15px 0;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0"
+          width="750" style="border: 1px solid #252839">
+          <tr>
+            <td align="center" bgcolor="#252839">
+              <p th:text="#{header}"
+                style="display: block; color: #b5b5b7; font: small-caps bold 32pt sans-serif;">headerText</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" bgcolor="#b5b5b7">
+              <p
+                style="display: block; color: #252839; font: small-caps bold 16pt sans-serif;">
+                <span th:text="#{subheader.from}">from</span> <span
+                  th:text="${#dates.format(beginDate, 'dd MMMM yyyy')}">28-12-2012</span>
+                <span th:text="#{subheader.to}">to</span> <span
+                  th:text="${#dates.format(endDate, 'dd MMMM yyyy')}">28-12-2012</span>
+              </p>
+            </td>
+          </tr>
+          <tr th:each="city : ${cities}">
+            <td bgcolor="#ffffff" style="padding: 10px 10px 25px 10px;">
+              <table border="0" cellpadding="0" cellspacing="0"
+                width="100%"
+                style="font-family: sans-serif; font-size: 10pt">
+                <tr>
+                  <td colspan="4" th:text="${city.name}"
+                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #677077">Landshut</td>
+                </tr>
+                <tr style="font-size: 11pt; color: #677077">
+                  <th width="110px" align="left"
+                    th:text="#{header.date}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Datum</th>
+                  <th width="150px" align="left"
+                    th:text="#{header.shop}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Geschäft</th>
+                  <th align="left" th:text="#{header.message}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Beschreibung</th>
+                  <th width="80px" align="right"
+                    th:text="#{header.amount}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Betrag</th>
+                </tr>
+                <tr th:each="expense : ${city.expenses}">
+                  <td align="left" style="padding: 2px 0 2px 0"
+                    th:text="${#dates.format(expense.timestamp, 'EE, dd.MM. HH:mm')}">Sa,
+                    21.03. 17:58</td>
+                  <td th:text="${expense.shop}">Betz</td>
+                  <td th:text="${expense.message}">Heute habe ich
+                    mal so richtig viel eingekauft, damit die Zelle auch
+                    mal so richtig voll wird und über zwei Zeilen geht!</td>
+                  <td style="font-family: monospace" align="right"
+                    th:text="|${#numbers.formatDecimal(expense.amountDouble, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
+                    €</td>
+                </tr>
+                <tr>
+                  <td colspan="3" th:text="#{total.sum}" align="right"
+                    style="padding-top: 3px; border-top: solid #677077 2px">Summe</td>
+                  <td
+                    th:text="|${#numbers.formatDecimal(city.sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
+                    style="font-family: monospace; padding-top: 3px; border-top: solid #677077 2px"
+                    align="right">6,45 €</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td
+              th:text="|#{total.sum} ${#numbers.formatDecimal(sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
+              style="font-family: monospace; font-size: 12pt; padding-top: 3px; border-top: solid #677077 2px"
+              align="right">6,45 €</td>
+          </tr>
+          <tr>
+            <td bgcolor="#f2b632"
+              style="padding: 10px 10px 10px 10px; font-family: sans-serif; font-size: 12pt; color: #1d2120;">
+              (c) by probstl.de</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
