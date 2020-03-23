@@ -7,10 +7,8 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -20,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -43,9 +43,51 @@ public class ExpensesWebResource {
 	private static final Logger LOG = LoggerFactory.getLogger(ExpensesWebResource.class);
 
 	/**
+	 * Shows the expenses by month/year
+	 * 
+	 * @param month The month
+	 * @param year  The year
+	 * @param model Model for web view
+	 * @return Template to show
+	 */
+	@GetMapping("/expenses/show/{month}/{year}")
+	public String showMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
+			Model model) {
+
+		LocalDateTime begin;
+
+		try {
+			begin = LocalDateTime.of(LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1),
+					LocalTime.of(0, 0, 0));
+		} catch (NumberFormatException e) {
+			LOG.warn("Illegal month/year in requeset", e);
+			begin = LocalDateTime.of(LocalDate.now().with(TemporalAdjusters.firstDayOfMonth()), LocalTime.of(0, 0, 0));
+		}
+
+		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
+		model.addAttribute("beginDate", beginDate);
+
+		LocalDateTime end = begin.plusMonths(1);
+		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
+		model.addAttribute("endDate", endDate);
+		model.addAttribute("currency", "€");
+
+		Map<String, CityInfo> cityMapping = findExpensesByDate(beginDate, endDate);
+
+		MailInfo mailInfo = new MailInfo(beginDate, endDate);
+		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
+
+		model.addAttribute("cities", mailInfo.getCityList());
+		model.addAttribute("sum", mailInfo.getSum());
+
+		return "email";
+	}
+
+	/**
 	 * Returns the data of the current week
 	 * 
-	 * @return currentWeek
+	 * @param model Model for web view
+	 * @return Template to show
 	 */
 	@GetMapping("/expenses/show/currentWeek")
 	public String showWeek(Model model) {
@@ -61,9 +103,28 @@ public class ExpensesWebResource {
 		model.addAttribute("endDate", endDate);
 		model.addAttribute("currency", "€");
 
+		Map<String, CityInfo> cityMapping = findExpensesByDate(beginDate, endDate);
+
+		MailInfo mailInfo = new MailInfo(beginDate, endDate);
+		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
+
+		model.addAttribute("cities", mailInfo.getCityList());
+		model.addAttribute("sum", mailInfo.getSum());
+
+		return "email";
+	}
+
+	/**
+	 * Find the expenses for an interval from begin (inclusive) to end (exclusive)
+	 * 
+	 * @param beginDate Begin date
+	 * @param endDate   End date
+	 * @return Map of cities and expenses by city
+	 */
+	private Map<String, CityInfo> findExpensesByDate(Date beginDate, Date endDate) {
 		final Map<String, CityInfo> cityMapping = new HashMap<>();
 
-		LOG.info("Find expenses from {} to {}", begin, end);
+		LOG.info("Find expenses from {} to {}", beginDate, endDate);
 
 		try {
 			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection("ausgaben")
@@ -97,14 +158,7 @@ public class ExpensesWebResource {
 		} catch (ExecutionException e) {
 			LOG.error("Fehler in der Ausführung", e);
 		}
-
-		MailInfo mailInfo = new MailInfo(beginDate, endDate);
-		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
-
-		model.addAttribute("cities", mailInfo.getCityList());
-		model.addAttribute("sum", mailInfo.getSum());
-
-		return "email";
+		return cityMapping;
 	}
 
 }
