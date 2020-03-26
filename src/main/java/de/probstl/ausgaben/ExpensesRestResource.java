@@ -2,19 +2,11 @@ package de.probstl.ausgaben;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import javax.validation.Valid;
@@ -24,15 +16,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 
 import de.probstl.ausgaben.data.Expense;
@@ -46,47 +37,19 @@ public class ExpensesRestResource {
 	@Autowired
 	private FirestoreConfigService m_FirestoreService;
 
-	@GetMapping("/ausgaben/week")
-	public List<Expense> currentWeek() {
+	@PostMapping("/expense/create")
+	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense ausgabe, Locale requestLocale,
+			Authentication auth) {
 
-		LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-		LocalDateTime begin = LocalDateTime.of(monday, LocalTime.of(0, 0, 0));
-		LocalDateTime end = begin.plusDays(7);
-
-		LOG.info("Find expenses from {} to {}", begin, end);
-
-		final List<Expense> toReturn = new ArrayList<>();
-
-		try {
-			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection("ausgaben")
-					.whereGreaterThan("timestamp",
-							Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant()))
-					.whereLessThan("timestamp", Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant()))
-					.orderBy("timestamp").get();
-
-			QuerySnapshot queryResult = future.get();
-			LOG.info("Read time {}", queryResult.getReadTime());
-			for (DocumentSnapshot document : queryResult.getDocuments()) {
-				Expense ausgabe = new Expense();
-				ausgabe.setShop(document.getString("shop"));
-				ausgabe.setCity(document.getString("city"));
-				ausgabe.setMessage(document.getString("message"));
-				ausgabe.setAmountDouble(document.getDouble("amount"));
-				ausgabe.setTimestamp(document.getDate("timestamp"));
-				toReturn.add(ausgabe);
-			}
-		} catch (InterruptedException e) {
-			LOG.error("Unterbrochen", e);
-		} catch (ExecutionException e) {
-			LOG.error("Fehler in der Ausführung", e);
+		Optional<? extends GrantedAuthority> authority = auth.getAuthorities().stream().findFirst();
+		if (!authority.isPresent()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 
-		return toReturn;
-	}
+		String collection = authority.get().getAuthority();
+		LOG.info("Using collection {} for user {}", collection, auth.getName());
 
-	@PostMapping("/ausgaben/new")
-	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense ausgabe, Locale requestLocale) {
-		DocumentReference docRef = m_FirestoreService.getService().collection("ausgaben").document();
+		DocumentReference docRef = m_FirestoreService.getService().collection(collection).document();
 
 		LOG.info("New expense with description '{}' in shop '{}' with amount '{}' in locale {}.", ausgabe.getMessage(),
 				ausgabe.getShop(), ausgabe.getAmount(), requestLocale);

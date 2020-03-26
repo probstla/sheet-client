@@ -4,7 +4,7 @@
   xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>MailTemplate</title>
+<title>Expenses overview</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body style="margin: 0; padding: 0;">
@@ -14,15 +14,15 @@
         <table align="center" border="0" cellpadding="0" cellspacing="0"
           width="750" style="border: 1px solid #252839">
           <tr>
-            <td align="center" bgcolor="#252839">
+            <td align="center" bgcolor="#2E4600">
               <p th:text="#{header}"
-                style="display: block; color: #b5b5b7; font: small-caps bold 32pt sans-serif;">headerText</p>
+                style="display: block; color: #FFFFFF; font: small-caps bold 32pt sans-serif;">headerText</p>
             </td>
           </tr>
           <tr>
-            <td align="center" bgcolor="#b5b5b7">
+            <td align="center" bgcolor="#486B00">
               <p
-                style="display: block; color: #252839; font: small-caps bold 16pt sans-serif;">
+                style="display: block; color: #FFFFFF; font: small-caps bold 16pt sans-serif;">
                 <span th:text="#{subheader.from}">from</span> <span
                   th:text="${#dates.format(beginDate, 'dd MMMM yyyy')}">28-12-2012</span>
                 <span th:text="#{subheader.to}">to</span> <span
@@ -37,9 +37,9 @@
                 style="font-family: sans-serif; font-size: 10pt">
                 <tr>
                   <td colspan="4" th:text="${city.name}"
-                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #677077">Landshut</td>
+                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Landshut</td>
                 </tr>
-                <tr style="font-size: 11pt; color: #677077">
+                <tr style="font-size: 11pt; color: #486B00">
                   <th width="110px" align="left"
                     th:text="#{header.date}"
                     style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
@@ -82,11 +82,11 @@
           <tr>
             <td
               th:text="|#{total.sum} ${#numbers.formatDecimal(sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
-              style="font-family: monospace; font-size: 12pt; padding-top: 3px; border-top: solid #677077 2px"
+              style="font-family: monospace; font-size: 12pt; padding: 3px 10px 10px 10px; border-top: solid #677077 2px"
               align="right">6,45 €</td>
           </tr>
           <tr>
-            <td bgcolor="#f2b632"
+            <td bgcolor="#A2C523"
               style="padding: 10px 10px 10px 10px; font-family: sans-serif; font-size: 12pt; color: #1d2120;">
               (c) by probstl.de</td>
           </tr>

@@ -7,19 +7,24 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -33,7 +38,7 @@ import de.probstl.ausgaben.mail.MailInfo;
  * Controller for web-access
  */
 @Controller
-public class ExpensesWebResource {
+public class ExpensesWebResource implements WebMvcConfigurer {
 
 	/** Service to access Google data */
 	@Autowired
@@ -41,6 +46,13 @@ public class ExpensesWebResource {
 
 	/** The Logger */
 	private static final Logger LOG = LoggerFactory.getLogger(ExpensesWebResource.class);
+
+	@Override
+	public void addViewControllers(ViewControllerRegistry registry) {
+		registry.addViewController("/").setViewName("redirect:/expenses/view/currentWeek");
+		registry.addViewController("/expenses/**").setViewName("expenses");
+		registry.addViewController("/login").setViewName("login");
+	}
 
 	/**
 	 * Shows the expenses by month/year
@@ -50,9 +62,9 @@ public class ExpensesWebResource {
 	 * @param model Model for web view
 	 * @return Template to show
 	 */
-	@GetMapping("/expenses/show/{month}/{year}")
+	@GetMapping("/expenses/view/{month}/{year}")
 	public String showMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
-			Model model) {
+			Model model, Authentication auth) {
 
 		LocalDateTime begin;
 
@@ -72,9 +84,19 @@ public class ExpensesWebResource {
 		model.addAttribute("endDate", endDate);
 		model.addAttribute("currency", "€");
 
-		Map<String, CityInfo> cityMapping = findExpensesByDate(beginDate, endDate);
+		final MailInfo mailInfo = new MailInfo(beginDate, endDate);
+		final Map<String, CityInfo> cityMapping;
 
-		MailInfo mailInfo = new MailInfo(beginDate, endDate);
+		Optional<? extends GrantedAuthority> authority = auth.getAuthorities().stream().findFirst();
+		if (authority.isPresent()) {
+			String collection = authority.get().getAuthority();
+			LOG.info("Using collection {} for user {}", collection, auth.getName());
+			cityMapping = findExpensesByDate(collection, beginDate, endDate);
+		} else {
+			LOG.warn("No authority for user {} found. Showing empty data!", auth.getName());
+			cityMapping = Collections.emptyMap();
+		}
+
 		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
 
 		model.addAttribute("cities", mailInfo.getCityList());
@@ -89,8 +111,8 @@ public class ExpensesWebResource {
 	 * @param model Model for web view
 	 * @return Template to show
 	 */
-	@GetMapping("/expenses/show/currentWeek")
-	public String showWeek(Model model) {
+	@GetMapping("/expenses/view/currentWeek")
+	public String showWeek(Model model, Authentication auth) {
 
 		LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 
@@ -103,9 +125,19 @@ public class ExpensesWebResource {
 		model.addAttribute("endDate", endDate);
 		model.addAttribute("currency", "€");
 
-		Map<String, CityInfo> cityMapping = findExpensesByDate(beginDate, endDate);
+		final MailInfo mailInfo = new MailInfo(beginDate, endDate);
+		final Map<String, CityInfo> cityMapping;
 
-		MailInfo mailInfo = new MailInfo(beginDate, endDate);
+		Optional<? extends GrantedAuthority> authority = auth.getAuthorities().stream().findFirst();
+		if (authority.isPresent()) {
+			String collection = authority.get().getAuthority();
+			LOG.info("Using collection {} for user {}", collection, auth.getName());
+			cityMapping = findExpensesByDate(collection, beginDate, endDate);
+		} else {
+			LOG.warn("No authority for user {} found. Showing empty data!", auth.getName());
+			cityMapping = Collections.emptyMap();
+		}
+
 		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
 
 		model.addAttribute("cities", mailInfo.getCityList());
@@ -121,13 +153,13 @@ public class ExpensesWebResource {
 	 * @param endDate   End date
 	 * @return Map of cities and expenses by city
 	 */
-	private Map<String, CityInfo> findExpensesByDate(Date beginDate, Date endDate) {
+	private Map<String, CityInfo> findExpensesByDate(String collection, Date beginDate, Date endDate) {
 		final Map<String, CityInfo> cityMapping = new HashMap<>();
 
-		LOG.info("Find expenses from {} to {}", beginDate, endDate);
+		LOG.info("Find expenses from {} to {} in collection {}", beginDate, endDate, collection);
 
 		try {
-			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection("ausgaben")
+			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection(collection)
 					.whereGreaterThan("timestamp", beginDate).whereLessThan("timestamp", endDate).orderBy("timestamp")
 					.get();
 
