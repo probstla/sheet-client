@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.api.core.ApiFuture;
@@ -29,6 +30,7 @@ import com.google.cloud.firestore.WriteResult;
 import de.probstl.ausgaben.data.Expense;
 
 @RestController
+@RequestMapping("/rest")
 public class ExpensesRestResource {
 
 	/** Logger */
@@ -37,17 +39,18 @@ public class ExpensesRestResource {
 	@Autowired
 	private FirestoreConfigService m_FirestoreService;
 
-	@PostMapping("/expense/create")
+	@PostMapping(path = "/expenses/create")
 	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense ausgabe, Locale requestLocale,
-			Authentication auth) {
+			Authentication authentication) {
 
-		Optional<? extends GrantedAuthority> authority = auth.getAuthorities().stream().findFirst();
+		Optional<? extends GrantedAuthority> authority = authentication.getAuthorities().stream().findFirst();
 		if (!authority.isPresent()) {
+			LOG.warn("No authority for user {} found. Showing empty data!", authentication.getName());
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
-
 		String collection = authority.get().getAuthority();
-		LOG.info("Using collection {} for user {}", collection, auth.getName());
+
+		LOG.info("Using collection {} for user {}", collection, authentication.getName());
 
 		DocumentReference docRef = m_FirestoreService.getService().collection(collection).document();
 

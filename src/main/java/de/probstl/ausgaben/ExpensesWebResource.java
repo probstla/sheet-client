@@ -50,7 +50,6 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	@Override
 	public void addViewControllers(ViewControllerRegistry registry) {
 		registry.addViewController("/").setViewName("redirect:/expenses/view/currentWeek");
-		registry.addViewController("/expenses/**").setViewName("expenses");
 		registry.addViewController("/login").setViewName("login");
 	}
 
