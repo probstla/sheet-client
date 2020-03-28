@@ -2,3 +2,6 @@ steps:
  - name: maven:3-jdk-11
    entrypoint: mvn
    args: ['package','-Dmaven.test.skip=true']
+ - name: eu.gcr.io/cloud-builders/docker
+   args: ['build', '-t', 'eu.gcr.io/probstl/ausgaben-firebase', '--build-arg=JAR_FILE=target/hello-spring-1.0.0.jar', '.']
+images: ['eu.gcr.io/probstl/ausgaben-firebase']
