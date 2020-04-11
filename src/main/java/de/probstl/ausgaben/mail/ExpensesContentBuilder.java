@@ -36,6 +36,7 @@ public class ExpensesContentBuilder {
 		context.setVariable("beginDate", mailInfo.getFrom());
 		context.setVariable("endDate", mailInfo.getTo());
 		context.setVariable("cities", mailInfo.getCityList());
+		context.setVariable("sumShops", mailInfo.getSumShops());
 		context.setVariable("sum", mailInfo.getSum());
 		context.setVariable("currency", "€");
 		return templateEngine.process("email", context);

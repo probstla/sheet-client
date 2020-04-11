@@ -9,6 +9,9 @@ import javax.validation.constraints.NotNull;
  */
 public class Expense {
 
+	/** Default payment if no payment was defined */
+	public static final String DEFAULT_PAYMENT = "cash";
+
 	/** The shop where the expense was made */
 	@NotNull(message = "shop must be provided")
 	private String m_Shop;
@@ -29,6 +32,9 @@ public class Expense {
 
 	/** The timestamp */
 	private Date m_Timestamp;
+
+	/** The payment (cash or card) of the expense */
+	private String m_Payment;
 
 	/**
 	 * Returns the shop
@@ -137,4 +143,26 @@ public class Expense {
 	public void setCity(String city) {
 		m_City = city;
 	}
+
+	/**
+	 * @return the m_Payment
+	 */
+	public String getPayment() {
+		return m_Payment == null ? DEFAULT_PAYMENT : m_Payment;
+	}
+
+	/**
+	 * @param m_Payment the m_Payment to set
+	 */
+	public void setPayment(String m_Payment) {
+		this.m_Payment = m_Payment;
+	}
+
+	/**
+	 * @return Is <code>true</code> if the payment is 'cash' otherwise it's card
+	 */
+	public boolean isCash() {
+		return DEFAULT_PAYMENT.equals(getPayment());
+	}
+
 }

@@ -40,7 +40,7 @@ public class ExpensesRestResource {
 	private FirestoreConfigService m_FirestoreService;
 
 	@PostMapping(path = "/expenses/create")
-	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense ausgabe, Locale requestLocale,
+	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense expense, Locale requestLocale,
 			Authentication authentication) {
 
 		Optional<? extends GrantedAuthority> authority = authentication.getAuthorities().stream().findFirst();
@@ -54,30 +54,36 @@ public class ExpensesRestResource {
 
 		DocumentReference docRef = m_FirestoreService.getService().collection(collection).document();
 
-		LOG.info("New expense with description '{}' in shop '{}' with amount '{}' in locale {}.", ausgabe.getMessage(),
-				ausgabe.getShop(), ausgabe.getAmount(), requestLocale);
+		String payment = expense.getPayment();
+		if (payment == null) {
+			payment = "cash";
+		}
+
+		LOG.info("New expense with description '{}' in shop '{}' with amount '{}' payed with {} in locale {}.",
+				expense.getMessage(), expense.getShop(), expense.getAmount(), payment, requestLocale);
 
 		NumberFormat format = NumberFormat.getNumberInstance(requestLocale);
 		Number betrag = null;
 		try {
-			betrag = format.parse(ausgabe.getAmount());
+			betrag = format.parse(expense.getAmount());
 		} catch (ParseException e1) {
-			LOG.error("No valid number: " + ausgabe.getAmount(), e1);
+			LOG.error("No valid number: " + expense.getAmount(), e1);
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
-		LOG.info("Formatted value of {} is {}", ausgabe.getAmount(), betrag);
+		LOG.info("Formatted value of {} is {}", expense.getAmount(), betrag);
 
 		Map<String, Object> data = new HashMap<>();
-		data.put("message", ausgabe.getMessage());
-		data.put("shop", ausgabe.getShop());
+		data.put("message", expense.getMessage());
+		data.put("shop", expense.getShop());
 		data.put("amount", betrag);
-		data.put("city", ausgabe.getCity());
+		data.put("city", expense.getCity());
+		data.put("payment", payment);
 
-		if (ausgabe.getTimestamp() == null) {
+		if (expense.getTimestamp() == null) {
 			data.put("timestamp", new Date());
 		} else {
-			data.put("timestamp", ausgabe.getTimestamp());
+			data.put("timestamp", expense.getTimestamp());
 		}
 
 		ApiFuture<WriteResult> result = docRef.set(data);

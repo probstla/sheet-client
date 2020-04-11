@@ -51,6 +51,9 @@
                   <th align="left" th:text="#{header.message}"
                     style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
                     Beschreibung</th>
+                  <th width="24px" align="right"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    &nbsp;</th>
                   <th width="80px" align="right"
                     th:text="#{header.amount}"
                     style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
@@ -64,13 +67,16 @@
                   <td th:text="${expense.message}">Heute habe ich
                     mal so richtig viel eingekauft, damit die Zelle auch
                     mal so richtig voll wird und über zwei Zeilen geht!</td>
+                  <td><img style="width: 24px; height: 24px"
+                    th:src="${expense.cash}? @{/img/coins3.png} : @{/img/credit-card.png}" alt="payment"
+                    src="../static/images/coins.png" /></td>
                   <td style="font-family: monospace" align="right"
                     th:text="|${#numbers.formatDecimal(expense.amountDouble, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
                     €</td>
                 </tr>
                 <tr>
-                  <td colspan="3" th:text="#{total.sum}" align="right"
-                    style="padding-top: 3px; border-top: solid #677077 2px">Summe</td>
+                  <td colspan="4" th:text="#{total.sum}" align="right"
+                    style="padding-top: 3px; border-top: solid #677077 2px">Summe:</td>
                   <td
                     th:text="|${#numbers.formatDecimal(city.sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
                     style="font-family: monospace; padding-top: 3px; border-top: solid #677077 2px"
@@ -80,10 +86,43 @@
             </td>
           </tr>
           <tr>
+            <td bgcolor="#ffffff" style="padding: 10px 10px 25px 10px;">
+              <table border="0" cellpadding="0" cellspacing="0"
+                width="100%"
+                style="font-family: sans-serif; font-size: 10pt">
+                <tr>
+                  <td colspan="3" th:text="#{header.sumShops}"
+                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Summen Geschäfte</td>
+                </tr>
+                <tr style="font-size: 11pt; color: #486B00">
+                  <th width="150px" align="left"
+                    th:text="#{header.shop}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Geschäft</th>
+                  <th width="80px" align="right"
+                    th:text="#{header.amount}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Betrag</th>
+                  <th>&nbsp;</th>
+                </tr>
+                <tr th:each="shopSum : ${sumShops}">
+                  <td th:text="${shopSum.shop}" style="padding: 2px 0 2px 0">Betz</td>
+                  <td style="font-family: monospace" align="right"
+                    th:text="|${#numbers.formatDecimal(shopSum.sum, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
+                    €</td>
+                </tr>
+                <tr>
+                  <td colspan="2"
+                    style="padding-top: 3px; border-top: solid #677077 2px">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
             <td
               th:text="|#{total.sum} ${#numbers.formatDecimal(sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
               style="font-family: monospace; font-size: 12pt; padding: 3px 10px 10px 10px; border-top: solid #677077 2px"
-              align="right">6,45 €</td>
+              align="right">Summe: 6,45 €</td>
           </tr>
           <tr>
             <td bgcolor="#A2C523"

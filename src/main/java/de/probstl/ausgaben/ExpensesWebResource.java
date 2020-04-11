@@ -99,6 +99,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
 
 		model.addAttribute("cities", mailInfo.getCityList());
+		model.addAttribute("sumShops", mailInfo.getSumShops());
 		model.addAttribute("sum", mailInfo.getSum());
 
 		return "email";
@@ -140,6 +141,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
 
 		model.addAttribute("cities", mailInfo.getCityList());
+		model.addAttribute("sumShops", mailInfo.getSumShops());
 		model.addAttribute("sum", mailInfo.getSum());
 
 		return "email";
@@ -182,6 +184,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 				expense.setMessage(document.getString("message"));
 				expense.setAmountDouble(document.getDouble("amount"));
 				expense.setTimestamp(document.getDate("timestamp"));
+				expense.setPayment(document.getString("payment"));
 				cityInfo.addExpense(expense);
 			}
 		} catch (InterruptedException e) {

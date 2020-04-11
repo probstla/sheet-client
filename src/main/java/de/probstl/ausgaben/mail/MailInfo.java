@@ -4,7 +4,13 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import de.probstl.ausgaben.data.Expense;
 
 /**
  * Class holding the information needed to fill an email with content
@@ -21,7 +27,10 @@ public class MailInfo {
 	private BigDecimal m_Sum = new BigDecimal(0);
 
 	/** List of cities where the expenses have been made */
-	private Collection<CityInfo> m_CityList = new TreeSet<CityInfo>();
+	private final Collection<CityInfo> m_CityList = new TreeSet<CityInfo>();
+
+	/** Map with all shops and their sums */
+	private final Map<String, Double> m_ShopSum = new HashMap<String, Double>();
 
 	/**
 	 * Constructor
@@ -42,6 +51,13 @@ public class MailInfo {
 	public void addCityInfo(CityInfo info) {
 		double sumCity = info.getExpenses().stream().mapToDouble(x -> x.getAmountDouble().doubleValue()).sum();
 		m_Sum = m_Sum.add(BigDecimal.valueOf(sumCity));
+
+		Map<String, List<Expense>> shopMap = info.getExpenses().stream()
+				.collect(Collectors.groupingBy(Expense::getShop));
+		Map<String, Double> shopSumMap = shopMap.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(),
+				x -> x.getValue().stream().mapToDouble(Expense::getAmountDouble).sum()));
+		m_ShopSum.putAll(shopSumMap);
+
 		m_CityList.add(info);
 	}
 
@@ -52,6 +68,18 @@ public class MailInfo {
 	 */
 	public Collection<CityInfo> getCityList() {
 		return Collections.unmodifiableCollection(m_CityList);
+	}
+
+	/**
+	 * Returns the summary of all shops sorted by amount desc
+	 * 
+	 * @return Collection of entries with the shop name as key and the amount sum as
+	 *         value
+	 */
+	public Collection<ShopSum> getSumShops() {
+
+		return m_ShopSum.entrySet().stream().map(x -> new ShopSum(x.getKey(), x.getValue())).sorted()
+				.collect(Collectors.toList());
 	}
 
 	/**
