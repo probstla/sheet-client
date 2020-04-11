@@ -68,8 +68,8 @@
                     mal so richtig viel eingekauft, damit die Zelle auch
                     mal so richtig voll wird und über zwei Zeilen geht!</td>
                   <td><img style="width: 24px; height: 24px"
-                    th:src="${expense.cash}? @{/img/coins3.png} : @{/img/credit-card.png}" alt="payment"
-                    src="../static/images/coins.png" /></td>
+                    th:src="${expense.cash}? @{/img/coins3.png} : @{/img/credit-card.png}"
+                    alt="payment" src="../static/images/coins.png" /></td>
                   <td style="font-family: monospace" align="right"
                     th:text="|${#numbers.formatDecimal(expense.amountDouble, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
                     €</td>
@@ -85,33 +85,6 @@
               </table>
             </td>
           </tr>
-		  <tr th:each="city : ${cities}">
-            <td bgcolor="#ffffff" style="padding: 10px 10px 25px 10px;">
-              <table border="0" cellpadding="0" cellspacing="0"
-                width="100%"
-                style="font-family: sans-serif; font-size: 10pt">
-                <tr>
-                  <td colspan="2" th:text="${city.name}"
-                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Top 5 Geschäfte</td>
-                </tr>
-				<tr style="font-size: 11pt; color: #486B00">
-                  <th width="110px" align="left"
-                    th:text="#{header.date}"
-                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
-                    Geschäft</th>
-                  <th width="80px" align="right"
-                    th:text="#{header.amount}"
-                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
-                    Betrag</th>
-                </tr>
-				<tr></tr>
-                  <td th:text="${expense.shop}">Betz</td>
-                  <td style="font-family: monospace" align="right"
-                    th:text="|${#numbers.formatDecimal(expense.amountDouble, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
-                    €</td>
-			</table>
-			</td>
-			</tr>
           <tr>
             <td bgcolor="#ffffff" style="padding: 10px 10px 25px 10px;">
               <table border="0" cellpadding="0" cellspacing="0"
@@ -119,7 +92,8 @@
                 style="font-family: sans-serif; font-size: 10pt">
                 <tr>
                   <td colspan="3" th:text="#{header.sumShops}"
-                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Summen Geschäfte</td>
+                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Summen
+                    Geschäfte</td>
                 </tr>
                 <tr style="font-size: 11pt; color: #486B00">
                   <th width="150px" align="left"
@@ -133,7 +107,8 @@
                   <th>&nbsp;</th>
                 </tr>
                 <tr th:each="shopSum : ${sumShops}">
-                  <td th:text="${shopSum.shop}" style="padding: 2px 0 2px 0">Betz</td>
+                  <td th:text="${shopSum.shop}"
+                    style="padding: 2px 0 2px 0">Betz</td>
                   <td style="font-family: monospace" align="right"
                     th:text="|${#numbers.formatDecimal(shopSum.sum, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
                     €</td>
