@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Collections;
@@ -160,10 +161,16 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 
 		LOG.info("Find expenses from {} to {} in collection {}", beginDate, endDate, collection);
 
-		ZoneId defaultZone = ZoneId.systemDefault();
+		ZoneId systemZone = ZoneId.systemDefault();
 		ZoneId homeZone = ZoneId.of("Europe/Berlin");
 
-		LOG.info("Default ZoneId {}, Home ZoneId {}.", defaultZone, homeZone);
+		// Only for testing
+		// Optional<String> otherZone = ZoneId.getAvailableZoneIds().stream().filter(z
+		// -> z.indexOf("Tokyo") >= 0)
+		// .findFirst();
+		// ZoneId homeZone = ZoneId.of(otherZone.get());
+
+		LOG.info("System ZoneId is {}, Probstl ZoneId {}.", systemZone, homeZone);
 
 		try {
 			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection(collection)
@@ -190,12 +197,15 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 				expense.setMessage(document.getString("message"));
 				expense.setAmountDouble(document.getDouble("amount"));
 
-				Instant timestamp = document.getDate("timestamp").toInstant();
-				ZonedDateTime dateTime = ZonedDateTime.ofInstant(timestamp, defaultZone);
-				ZonedDateTime zoneDateTime = ZonedDateTime.ofInstant(timestamp, homeZone);
-				LOG.info("Timestamp {} is local datetime {} and home datetime {}", timestamp, dateTime, zoneDateTime);
+				// ZonedDateTime of timestamp from document with system default zone
+				ZonedDateTime defaultDateTime = ZonedDateTime.ofInstant(document.getDate("timestamp").toInstant(),
+						systemZone);
 
-				expense.setTimestamp(Date.from(zoneDateTime.toInstant()));
+				// Convert to home zone (MEZ/MESZ) and get date for expense object
+				ZonedDateTime homeDateTime = defaultDateTime.toLocalDateTime().atZone(homeZone);
+				Instant timestamp = homeDateTime.toInstant();
+
+				expense.setTimestamp(Date.from(timestamp));
 				expense.setPayment(document.getString("payment"));
 
 				LOG.info("Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR.",
