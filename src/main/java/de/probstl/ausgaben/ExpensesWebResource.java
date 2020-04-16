@@ -191,8 +191,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 				expense.setAmountDouble(document.getDouble("amount"));
 
 				Instant timestamp = document.getDate("timestamp").toInstant();
-				LocalDateTime dateTime = LocalDateTime.ofInstant(timestamp, defaultZone);
-				ZonedDateTime zoneDateTime = ZonedDateTime.of(dateTime, homeZone);
+				ZonedDateTime dateTime = ZonedDateTime.ofInstant(timestamp, defaultZone);
+				ZonedDateTime zoneDateTime = ZonedDateTime.ofInstant(timestamp, homeZone);
 				LOG.info("Timestamp {} is local datetime {} and home datetime {}", timestamp, dateTime, zoneDateTime);
 
 				expense.setTimestamp(Date.from(zoneDateTime.toInstant()));
