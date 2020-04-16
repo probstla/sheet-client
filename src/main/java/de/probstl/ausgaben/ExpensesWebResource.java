@@ -9,11 +9,13 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
@@ -164,13 +166,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		ZoneId systemZone = ZoneId.systemDefault();
 		ZoneId homeZone = ZoneId.of("Europe/Berlin");
 
-		// Only for testing
-		// Optional<String> otherZone = ZoneId.getAvailableZoneIds().stream().filter(z
-		// -> z.indexOf("Tokyo") >= 0)
-		// .findFirst();
-		// ZoneId homeZone = ZoneId.of(otherZone.get());
-
-		LOG.info("System ZoneId is {}, Probstl ZoneId {}.", systemZone, homeZone);
+		LOG.info("System ZoneId is {}, Home ZoneId {}.", systemZone, homeZone);
 
 		try {
 			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection(collection)
@@ -197,18 +193,14 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 				expense.setMessage(document.getString("message"));
 				expense.setAmountDouble(document.getDouble("amount"));
 
-				// ZonedDateTime of timestamp from document with system default zone
-				ZonedDateTime defaultDateTime = ZonedDateTime.ofInstant(document.getDate("timestamp").toInstant(),
-						systemZone);
+				Instant originalTimestamp = document.getDate("timestamp").toInstant();
+				LocalDateTime ldt = LocalDateTime.ofInstant(originalTimestamp, homeZone);
+				ZonedDateTime zdt = ZonedDateTime.of(ldt, systemZone);
 
-				// Convert to home zone (MEZ/MESZ) and get date for expense object
-				ZonedDateTime homeDateTime = defaultDateTime.toLocalDateTime().atZone(homeZone);
-				Instant timestamp = homeDateTime.toInstant();
-
-				expense.setTimestamp(Date.from(timestamp));
+				expense.setTimestamp(Date.from(zdt.toInstant()));
 				expense.setPayment(document.getString("payment"));
 
-				LOG.info("Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR.",
+				LOG.debug("Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR.",
 						document.getId(), document.getCreateTime(), expense.getTimestamp(), expense.getShop(),
 						expense.getAmountDouble());
 
