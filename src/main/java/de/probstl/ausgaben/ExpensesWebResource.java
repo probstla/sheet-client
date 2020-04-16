@@ -1,6 +1,7 @@
 package de.probstl.ausgaben;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -159,6 +160,11 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 
 		LOG.info("Find expenses from {} to {} in collection {}", beginDate, endDate, collection);
 
+		ZoneId defaultZone = ZoneId.systemDefault();
+		ZoneId homeZone = ZoneId.of("Europe/Berlin");
+
+		LOG.info("Default ZoneId {}, Home ZoneId {}.", defaultZone, homeZone);
+
 		try {
 			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection(collection)
 					.whereGreaterThan("timestamp", beginDate).whereLessThan("timestamp", endDate).orderBy("timestamp")
@@ -183,11 +189,18 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 				expense.setCity(city);
 				expense.setMessage(document.getString("message"));
 				expense.setAmountDouble(document.getDouble("amount"));
-				expense.setTimestamp(document.getTimestamp("timestamp").toDate());
+
+				Instant timestamp = document.getDate("timestamp").toInstant();
+				LocalDateTime dateTime = LocalDateTime.ofInstant(timestamp, defaultZone);
+				ZonedDateTime zoneDateTime = ZonedDateTime.of(dateTime, homeZone);
+				LOG.info("Timestamp {} is local datetime {} and home datetime {}", timestamp, dateTime, zoneDateTime);
+
+				expense.setTimestamp(Date.from(zoneDateTime.toInstant()));
 				expense.setPayment(document.getString("payment"));
 
-				LOG.info("Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR.", document.getId(),
-						document.getCreateTime(), expense.getTimestamp(), expense.getShop(), expense.getAmountDouble());
+				LOG.info("Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR.",
+						document.getId(), document.getCreateTime(), expense.getTimestamp(), expense.getShop(),
+						expense.getAmountDouble());
 
 				cityInfo.addExpense(expense);
 			}
