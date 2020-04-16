@@ -183,8 +183,12 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 				expense.setCity(city);
 				expense.setMessage(document.getString("message"));
 				expense.setAmountDouble(document.getDouble("amount"));
-				expense.setTimestamp(document.getDate("timestamp"));
+				expense.setTimestamp(document.getTimestamp("timestamp").toDate());
 				expense.setPayment(document.getString("payment"));
+
+				LOG.info("Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR.", document.getId(),
+						document.getCreateTime(), expense.getTimestamp(), expense.getShop(), expense.getAmountDouble());
+
 				cityInfo.addExpense(expense);
 			}
 		} catch (InterruptedException e) {
