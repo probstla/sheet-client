@@ -1,7 +1,9 @@
 package de.probstl.ausgaben;
 
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -79,12 +82,11 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Template to show
 	 */
 	@PostMapping("/overview")
-	public String gotoOverview(final HomeForm homeForm, final HttpServletRequest req, Model model, Authentication auth,
-			HttpServletResponse response) throws Exception{
+	public String gotoOverview(final HomeForm homeForm, final HttpServletRequest req, Locale requestLocale) {
 
 		if (req.getParameter("gotoWeek") != null) {
 			LOG.info("dispatch to current week");
-			return showWeek(model, auth);
+			return "redirect:/view/currentWeek";
 		}
 
 		LOG.info("dispatch to month: " + homeForm.getSelectedMonth());
@@ -93,21 +95,19 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		try {
 			// for parsing the day of month has to be added for some reason
 			localDate = LocalDate.parse("1 " + homeForm.getSelectedMonth(),
-					DateTimeFormatter.ofPattern("d " + MONTH_PATTERN));
+					DateTimeFormatter.ofPattern("d " + MONTH_PATTERN, requestLocale));
 		} catch (DateTimeParseException e) {
 			LOG.error("unparseable selection in landing page: " + homeForm.getSelectedMonth(), e);
-			return showHome(model);
+			return "redirect:/home";
 		}
 
 		if (req.getParameter("gotoMonth") != null) {
-			return showMonth(Integer.toString(localDate.getMonthValue()), Integer.toString(localDate.getYear()), model,
-					auth);
-		}
-		else if (req.getParameter("downloadMonth") != null) {
+			return "redirect:/view/" + localDate.getMonthValue() + "/" + localDate.getYear();
+		} else if (req.getParameter("downloadMonth") != null) {
 			return "redirect:/export/" + localDate.getMonthValue() + "/" + localDate.getYear();
 		}
 
-		return showHome(model);
+		return "redirect:/home";
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Template to show
 	 */
 	@GetMapping("/home")
-	public String showHome(Model model) {
+	public String showHome(Model model, Locale requestLocale) {
 
 		final Collection<String> monthList = new ArrayList<String>();
 
@@ -127,7 +127,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		String month = null;
 		while (startDate.isBefore(LocalDate.now())) {
 
-			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN));
+			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN, requestLocale));
 			LOG.debug("Adding month for selection {}", month);
 			monthList.add(month);
 
@@ -170,7 +170,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 */
 	@GetMapping("/export/{month}/{year}")
 	public void exportMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
-			HttpServletResponse response, Authentication auth) throws Exception {
+			HttpServletResponse response, Authentication auth, Locale requestLocale) throws Exception {
 
 		final ExpensesRequest request = ExpensesRequest.forMonth(month, year);
 		final Map<String, CityInfo> cityMapping;
@@ -192,18 +192,20 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		response.setContentType("text/csv; charset=UTF-8");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
 
-		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+		final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+		final DecimalFormat numberFormat = (DecimalFormat) NumberFormat.getNumberInstance(requestLocale);
+		numberFormat.applyPattern("0.00");
 		final String lineSeparator = System.getProperty("line.separator");
 		final PrintWriter printWriter = response.getWriter();
 
 		for (CityInfo cityInfo : cityMapping.values()) {
 			for (Expense expense : cityInfo.getExpenses()) {
 				ZonedDateTime dt = expense.getTimestamp().toInstant().atZone(ZoneId.systemDefault());
-				printWriter.append(formatter.format(dt));
+				printWriter.append(dateFormatter.format(dt));
 				printWriter.append(",");
 				printWriter.append(quote(expense.getMessage()));
 				printWriter.append(",,");
-				printWriter.append(MessageFormat.format("\"{0,number,0.00} €\"", expense.getAmountDouble()));
+				printWriter.append("\"" + numberFormat.format(expense.getAmountDouble().doubleValue()) + " €\"");
 				printWriter.append(lineSeparator);
 			}
 		}
