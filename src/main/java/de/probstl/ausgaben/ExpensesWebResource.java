@@ -1,20 +1,15 @@
 package de.probstl.ausgaben;
 
 import java.io.PrintWriter;
-import java.text.DecimalFormat;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
-import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -84,23 +79,32 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Template to show
 	 */
 	@PostMapping("/overview")
-	public String gotoOverview(final HomeForm homeForm, final HttpServletRequest req, Model model,
-			Authentication auth) {
+	public String gotoOverview(final HomeForm homeForm, final HttpServletRequest req, Model model, Authentication auth,
+			HttpServletResponse response) throws Exception{
 
 		if (req.getParameter("gotoWeek") != null) {
 			LOG.info("dispatch to current week");
 			return showWeek(model, auth);
-		} else if (req.getParameter("gotoMonth") != null) {
-			try {
-				// for parsing the day of month has to be added for some reason
-				LocalDate localDate = LocalDate.parse("1 " + homeForm.getSelectedMonth(),
-						DateTimeFormatter.ofPattern("d " + MONTH_PATTERN));
-				LOG.info("dispatch to month: " + homeForm.getSelectedMonth());
-				return showMonth(Integer.toString(localDate.getMonthValue()), Integer.toString(localDate.getYear()),
-						model, auth);
-			} catch (DateTimeParseException e) {
-				LOG.error("unparseable selection in landing page: " + homeForm.getSelectedMonth(), e);
-			}
+		}
+
+		LOG.info("dispatch to month: " + homeForm.getSelectedMonth());
+
+		LocalDate localDate = null;
+		try {
+			// for parsing the day of month has to be added for some reason
+			localDate = LocalDate.parse("1 " + homeForm.getSelectedMonth(),
+					DateTimeFormatter.ofPattern("d " + MONTH_PATTERN));
+		} catch (DateTimeParseException e) {
+			LOG.error("unparseable selection in landing page: " + homeForm.getSelectedMonth(), e);
+			return showHome(model);
+		}
+
+		if (req.getParameter("gotoMonth") != null) {
+			return showMonth(Integer.toString(localDate.getMonthValue()), Integer.toString(localDate.getYear()), model,
+					auth);
+		}
+		else if (req.getParameter("downloadMonth") != null) {
+			return "redirect:/export/" + localDate.getMonthValue() + "/" + localDate.getYear();
 		}
 
 		return showHome(model);
@@ -216,7 +220,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 */
 	private String quote(String message) {
 
-		String toReturn = message + "\"BUG\" for testing";
+		String toReturn = message;
 
 		boolean hasDoubleQuotes = toReturn.indexOf("\"") >= 0;
 		boolean hasComma = message.indexOf(",") >= 0;
