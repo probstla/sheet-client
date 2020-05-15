@@ -39,7 +39,7 @@ public class ExpensesRestResource {
 	@Autowired
 	private FirestoreConfigService m_FirestoreService;
 
-	@PostMapping(path = "/expenses/create")
+	@PostMapping(path = "/create")
 	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense expense, Locale requestLocale,
 			Authentication authentication) {
 

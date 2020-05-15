@@ -5,18 +5,22 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +31,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -35,6 +40,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 
 import de.probstl.ausgaben.data.Expense;
+import de.probstl.ausgaben.data.HomeForm;
 import de.probstl.ausgaben.mail.CityInfo;
 import de.probstl.ausgaben.mail.MailInfo;
 
@@ -51,10 +57,78 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/** The Logger */
 	private static final Logger LOG = LoggerFactory.getLogger(ExpensesWebResource.class);
 
+	/** Pattern for formatting and parsing month */
+	private static final String MONTH_PATTERN = "MMMM yyyy";
+
 	@Override
 	public void addViewControllers(ViewControllerRegistry registry) {
-		registry.addViewController("/").setViewName("redirect:/expenses/view/currentWeek");
+		registry.addViewController("/").setViewName("redirect:/home");
 		registry.addViewController("/login").setViewName("login");
+	}
+
+	/**
+	 * Takes the input from the landing page and load the selected data
+	 * 
+	 * @param homeForm The form with the selected month if <b>gotoMonth</b> has been
+	 *                 pressed
+	 * @param req      The request for getting the pressed submit button
+	 * @param model    The model for calling other methods
+	 * @param auth     The model for calling other methods
+	 * @return Template to show
+	 */
+	@PostMapping("/overview")
+	public String gotoOverview(final HomeForm homeForm, final HttpServletRequest req, Model model,
+			Authentication auth) {
+
+		if (req.getParameter("gotoWeek") != null) {
+			LOG.info("dispatch to current week");
+			return showWeek(model, auth);
+		} else if (req.getParameter("gotoMonth") != null) {
+			try {
+				// for parsing the day of month has to be added for some reason
+				LocalDate localDate = LocalDate.parse("1 " + homeForm.getSelectedMonth(),
+						DateTimeFormatter.ofPattern("d " + MONTH_PATTERN));
+				LOG.info("dispatch to month: " + homeForm.getSelectedMonth());
+				return showMonth(Integer.toString(localDate.getMonthValue()), Integer.toString(localDate.getYear()),
+						model, auth);
+			} catch (DateTimeParseException e) {
+				LOG.error("unparseable selection in landing page: " + homeForm.getSelectedMonth(), e);
+			}
+		}
+
+		return showHome(model);
+	}
+
+	/**
+	 * Show the landing page
+	 * 
+	 * @param model Model for web view
+	 * @return Template to show
+	 */
+	@GetMapping("/home")
+	public String showHome(Model model) {
+
+		final Collection<String> monthList = new ArrayList<String>();
+
+		LocalDate startDate = LocalDate.of(2020, Month.APRIL, 1);
+
+		String month = null;
+		while (startDate.isBefore(LocalDate.now())) {
+
+			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN));
+			LOG.debug("Adding month for selection {}", month);
+			monthList.add(month);
+
+			startDate = startDate.plusMonths(1);
+		}
+
+		// Initialize Form with latest month
+		HomeForm homeForm = new HomeForm();
+		homeForm.setSelectedMonth(month);
+
+		model.addAttribute("monthSelection", monthList);
+		model.addAttribute("homeForm", homeForm);
+		return "home";
 	}
 
 	/**
@@ -65,7 +139,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param model Model for web view
 	 * @return Template to show
 	 */
-	@GetMapping("/expenses/view/{month}/{year}")
+	@GetMapping("/view/{month}/{year}")
 	public String showMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
 			Model model, Authentication auth) {
 
@@ -115,7 +189,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param model Model for web view
 	 * @return Template to show
 	 */
-	@GetMapping("/expenses/view/currentWeek")
+	@GetMapping("/view/currentWeek")
 	public String showWeek(Model model, Authentication auth) {
 
 		LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));

@@ -36,7 +36,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		try (FileInputStream in = new FileInputStream("/userAccounts.properties")) {
 			fromFile.load(in);
 		} catch (IOException ioe) {
-			fromFile.put("flo", "{noop}OXuN5o1WBuTj,enabled,ausgaben");
+			fromFile.put("flo", "{noop}test,enabled,ausgaben");
 			LOG.warn("Properties file not found. Using defaults!");
 		}
 		return new InMemoryUserDetailsManager(fromFile);

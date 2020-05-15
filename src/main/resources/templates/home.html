@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Expenses landing</title>
+</head>
+<body style="margin: 0; padding: 0;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td style="padding: 15px 0 15px 0;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0"
+          width="750" style="border: 1px solid #252839">
+          <tr>
+            <td align="center" bgcolor="#2E4600">
+              <p th:text="#{header}"
+                style="display: block; color: #FFFFFF; font: small-caps bold 32pt sans-serif;">headerTextHome</p>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#ffffff" style="padding: 10px 10px 25px 10px;">
+              <table border="0" cellpadding="0" cellspacing="0"
+                width="100%"
+                style="font-family: sans-serif; font-size: 10pt">
+                <tr>
+                  <td
+                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Navigation</td>
+                </tr>
+                <tr style="font-size: 11pt; color: #486B00">
+                  <td>
+                    <form action="#" th:action="@{/overview}"
+                      th:object="${homeForm}" method="POST">
+                      <button type="submit" name="gotoWeek"
+                        th:text="#{home.gotoWeek}">gotoWeek</button>
+                      <select th:field="*{selectedMonth}">
+                        <option th:each="month : ${monthSelection}"
+                          th:value="${month}" th:text="${month}">Monatauswahl</option>
+                      </select>
+                      <button type="submit" name="gotoMonth"
+                        th:text="#{home.gotoMonth}">gotoMonth</button>
+                    </form>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
