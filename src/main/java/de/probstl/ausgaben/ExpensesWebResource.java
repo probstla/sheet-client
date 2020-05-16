@@ -198,18 +198,61 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		final String lineSeparator = System.getProperty("line.separator");
 		final PrintWriter printWriter = response.getWriter();
 
+		// print headers
+		printWriter.append("Datum,Beschreibung,Kategorie,Betrag" + lineSeparator);
+
 		for (CityInfo cityInfo : cityMapping.values()) {
 			for (Expense expense : cityInfo.getExpenses()) {
 				ZonedDateTime dt = expense.getTimestamp().toInstant().atZone(ZoneId.systemDefault());
 				printWriter.append(dateFormatter.format(dt));
 				printWriter.append(",");
 				printWriter.append(quote(expense.getMessage()));
-				printWriter.append(",,");
+				printWriter.append(",");
+				printWriter.append(getCategory(auth, expense));
+				printWriter.append(",");
 				printWriter.append("\"" + numberFormat.format(expense.getAmountDouble().doubleValue()) + " €\"");
 				printWriter.append(lineSeparator);
 			}
 		}
 		printWriter.flush();
+	}
+
+	/**
+	 * Try to assign a Category for the expense. Possible categories:
+	 * <ul>
+	 * <li>Geschenkefond</li>
+	 * <li>52 Wochenchallenge</li>
+	 * <li>Lebensmittel</li>
+	 * <li>Eigene Anschaffungen</li>
+	 * <li>Verschiedenes</li>
+	 * </ul>
+	 * 
+	 * @param auth    The currently logged on user
+	 * @param expense The expense
+	 * @return A Category or an empty string when the category could not be assigned
+	 */
+	private String getCategory(Authentication auth, Expense expense) {
+
+		if (!"manu".equals(auth.getName())) {
+			return "";
+		}
+
+		if (expense.getMessage() != null && expense.getMessage().indexOf("Geschenk") >= 0) {
+			return "Geschenkefond";
+		} else if (expense.getShop() != null) {
+			if (expense.getShop().equals("Challenge")) {
+				return "52 Wochenchallenge";
+			} else if ("Gründl".equalsIgnoreCase(expense.getShop().trim())
+					|| "Rewe".equalsIgnoreCase(expense.getShop().trim())
+					|| "EDEKA".equalsIgnoreCase(expense.getShop().trim())
+					|| "DM".equalsIgnoreCase(expense.getShop().trim())
+					|| "Eierautomat".equalsIgnoreCase(expense.getShop().trim())
+					|| "Betz".equalsIgnoreCase(expense.getShop().trim())) {
+				return "Lebensmittel";
+			}
+		}
+
+		return "";
 	}
 
 	/**
