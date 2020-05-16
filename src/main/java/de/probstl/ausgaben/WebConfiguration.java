@@ -12,5 +12,8 @@ public class WebConfiguration implements WebMvcConfigurer {
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler("/img/**").addResourceLocations("classpath:/static/img/");
+		registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/");
+		registry.addResourceHandler("/apple-touch-icon.png").addResourceLocations("classpath:/static/");
+		registry.addResourceHandler("/favicon.png").addResourceLocations("classpath:/static/");
 	}
 }

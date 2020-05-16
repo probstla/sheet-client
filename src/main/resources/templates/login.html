@@ -3,8 +3,10 @@
   xmlns:th="https://www.thymeleaf.org"
   xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
-<link rel="apple-touch-icon" th:href="@{/img/search-dollar-solid.png}">
-<title>Expenses Login</title>
+<link rel="shortcut icon" th:href="@{/favicon.ico}">
+<link rel="icon" type="image/png" th:href="@{/favicon.png}" sizes="96x96">
+<link rel="apple-touch-icon" sizes="180x180" th:href="@{/apple-touch-icon.png}">
+<title>Login</title>
 </head>
 <body>
   <div th:if="${param.error}">Invalid username and password.</div>
