@@ -206,7 +206,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 				ZonedDateTime dt = expense.getTimestamp().toInstant().atZone(ZoneId.systemDefault());
 				printWriter.append(dateFormatter.format(dt));
 				printWriter.append(",");
-				printWriter.append(quote(expense.getMessage()));
+				printWriter.append(quote(expense));
 				printWriter.append(",");
 				printWriter.append(getCategory(auth, expense));
 				printWriter.append(",");
@@ -260,15 +260,18 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * additional double quotes to escape them. If there are comma in the message,
 	 * the message is surrounded by double quotes
 	 * 
-	 * @param message The message that should be quoted
+	 * @param expense The message that should be quoted
 	 * @return Quoted message
 	 */
-	private String quote(String message) {
+	private String quote(Expense expense) {
 
-		String toReturn = message;
+		String toReturn = expense.getMessage();
+		if (expense.getShop() != null) {
+			toReturn = toReturn + " (" + expense.getShop() + ")";
+		}
 
 		boolean hasDoubleQuotes = toReturn.indexOf("\"") >= 0;
-		boolean hasComma = message.indexOf(",") >= 0;
+		boolean hasComma = toReturn.indexOf(",") >= 0;
 		if (hasDoubleQuotes) {
 			toReturn = toReturn.replaceAll("\"", "\"\"");
 		}
