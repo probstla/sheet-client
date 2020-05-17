@@ -4,9 +4,7 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -15,12 +13,10 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,10 +35,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
-
 import de.probstl.ausgaben.data.Expense;
 import de.probstl.ausgaben.data.ExpensesRequest;
 import de.probstl.ausgaben.data.HomeForm;
@@ -57,7 +49,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 
 	/** Service to access Google data */
 	@Autowired
-	private FirestoreConfigService m_FirestoreService;
+	private FirestoreService m_FirestoreService;
 
 	/** The Logger */
 	private static final Logger LOG = LoggerFactory.getLogger(ExpensesWebResource.class);
@@ -113,11 +105,13 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Show the landing page
 	 * 
-	 * @param model Model for web view
+	 * @param model         Model for web view
+	 * @param auth          The logged in user
+	 * @param requestLocale The locale of the logged in user
 	 * @return Template to show
 	 */
 	@GetMapping("/home")
-	public String showHome(Model model, Locale requestLocale) {
+	public String showHome(Model model, Authentication auth, Locale requestLocale) {
 
 		final Collection<String> monthList = new ArrayList<String>();
 
@@ -138,8 +132,29 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		HomeForm homeForm = new HomeForm();
 		homeForm.setSelectedMonth(month);
 
+		double currentWeek = 0.0;
+		double currentMonth = 0.0;
+		double lastMonth = 0.0;
+		double percentOfLastMonth = 0.0;
+		double percentOfMonth = 0.0;
+
+		String collection = m_FirestoreService.extractCollection(auth);
+		if (collection != null) {
+			currentWeek = m_FirestoreService.findAmount(ExpensesRequest.forCurrentWeek(), collection);
+			currentMonth = m_FirestoreService.findAmount(ExpensesRequest.forCurrentMonth(), collection);
+			lastMonth = m_FirestoreService.findAmount(ExpensesRequest.forLastMonth(), collection);
+			percentOfLastMonth = (currentMonth > 0 && lastMonth > 0) ? (currentMonth / lastMonth) * 100.0 : 0.0;
+			percentOfMonth = (currentMonth > 0 && currentWeek > 0) ? (currentWeek / currentMonth) * 100.0 : 0.0;
+		}
+
 		model.addAttribute("monthSelection", monthList);
 		model.addAttribute("homeForm", homeForm);
+		model.addAttribute("amountLastMonth", Double.valueOf(lastMonth));
+		model.addAttribute("amountCurrentMonth", Double.valueOf(currentMonth));
+		model.addAttribute("amountCurrentWeek", Double.valueOf(currentWeek));
+		model.addAttribute("percentOfLastMonth", Double.valueOf(percentOfLastMonth));
+		model.addAttribute("percentOfMonth", Double.valueOf(percentOfMonth));
+
 		return "home";
 	}
 
@@ -175,13 +190,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		final ExpensesRequest request = ExpensesRequest.forMonth(month, year);
 		final Map<String, CityInfo> cityMapping;
 
-		Optional<? extends GrantedAuthority> authority = auth.getAuthorities().stream().findFirst();
-		if (authority.isPresent()) {
-			String collection = authority.get().getAuthority();
-			LOG.info("Using collection {} for user {}", collection, auth.getName());
+		String collection = m_FirestoreService.extractCollection(auth);
+		if (collection != null) {
 			cityMapping = findExpensesByDate(collection, request);
 		} else {
-			LOG.warn("No authority for user {} found. Showing empty data!", auth.getName());
 			cityMapping = Collections.emptyMap();
 		}
 
@@ -293,16 +305,13 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	private void loadData(ExpensesRequest request, Model model, Authentication auth) {
 		final Map<String, CityInfo> cityMapping;
 
-		Optional<? extends GrantedAuthority> authority = auth.getAuthorities().stream().findFirst();
-		if (authority.isPresent()) {
-			String collection = authority.get().getAuthority();
-			LOG.info("Using collection {} for user {}", collection, auth.getName());
+		String collection = m_FirestoreService.extractCollection(auth);
+		if (collection != null) {
 			cityMapping = findExpensesByDate(collection, request);
 		} else {
-			LOG.warn("No authority for user {} found. Showing empty data!", auth.getName());
 			cityMapping = Collections.emptyMap();
 		}
-
+		
 		final MailInfo mailInfo = new MailInfo(request.getBeginDate(), request.getEndDate());
 		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
 
@@ -335,60 +344,24 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Map of cities and expenses by city
 	 */
 	private Map<String, CityInfo> findExpensesByDate(String collection, ExpensesRequest request) {
+
 		final Map<String, CityInfo> cityMapping = new HashMap<>();
 
-		LOG.info("Find expenses from {} to {} in collection {}", request.getBeginDate(), request.getEndDate(),
-				collection);
+		Collection<Expense> expenses = m_FirestoreService.findBetween(request, collection);
 
-		ZoneId systemZone = ZoneId.systemDefault();
-		ZoneId homeZone = ZoneId.of("Europe/Berlin");
+		for (Expense expense : expenses) {
+			String city = expense.getCity();
 
-		LOG.info("System ZoneId is {}, Home ZoneId {}.", systemZone, homeZone);
-
-		try {
-			ApiFuture<QuerySnapshot> future = m_FirestoreService.getService().collection(collection)
-					.whereGreaterThan("timestamp", request.getBeginDate())
-					.whereLessThan("timestamp", request.getEndDate()).orderBy("timestamp").get();
-
-			QuerySnapshot queryResult = future.get();
-			LOG.info("Read time {}", queryResult.getReadTime());
-			for (DocumentSnapshot document : queryResult.getDocuments()) {
-
-				String city = document.getString("city");
-
-				CityInfo cityInfo;
-				if (cityMapping.containsKey(city)) {
-					cityInfo = cityMapping.get(city);
-				} else {
-					cityInfo = new CityInfo(city);
-					cityMapping.put(city, cityInfo);
-				}
-
-				Expense expense = new Expense();
-				expense.setShop(document.getString("shop"));
-				expense.setCity(city);
-				expense.setMessage(document.getString("message"));
-				expense.setAmountDouble(document.getDouble("amount"));
-
-				Instant originalTimestamp = document.getDate("timestamp").toInstant();
-				LocalDateTime ldt = LocalDateTime.ofInstant(originalTimestamp, homeZone);
-				ZonedDateTime zdt = ZonedDateTime.of(ldt, systemZone);
-
-				expense.setTimestamp(Date.from(zdt.toInstant()));
-				expense.setPayment(document.getString("payment"));
-
-				LOG.debug("Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR.",
-						document.getId(), document.getCreateTime(), expense.getTimestamp(), expense.getShop(),
-						expense.getAmountDouble());
-
-				cityInfo.addExpense(expense);
+			final CityInfo cityInfo;
+			if (cityMapping.containsKey(city)) {
+				cityInfo = cityMapping.get(city);
+			} else {
+				cityInfo = new CityInfo(city);
+				cityMapping.put(city, cityInfo);
 			}
-		} catch (InterruptedException e) {
-			LOG.error("Unterbrochen", e);
-		} catch (ExecutionException e) {
-			LOG.error("Fehler in der Ausführung", e);
+
+			cityInfo.addExpense(expense);
 		}
 		return cityMapping;
 	}
-
 }

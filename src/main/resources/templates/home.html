@@ -4,8 +4,10 @@
   xmlns:th="http://www.thymeleaf.org">
 <head>
 <link rel="shortcut icon" th:href="@{/favicon.ico}">
-<link rel="icon" type="image/png" th:href="@{/favicon.png}" sizes="96x96">
-<link rel="apple-touch-icon" sizes="180x180" th:href="@{/apple-touch-icon.png}">
+<link rel="icon" type="image/png" th:href="@{/favicon.png}"
+  sizes="96x96">
+<link rel="apple-touch-icon" sizes="180x180"
+  th:href="@{/apple-touch-icon.png}">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Landing page</title>
 </head>
@@ -27,11 +29,54 @@
                 width="100%"
                 style="font-family: sans-serif; font-size: 10pt">
                 <tr>
-                  <td
-                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Navigation</td>
+                  <td colspan="3" th:text="#{summaryHome}"
+                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Ausgabenstand</td>
                 </tr>
                 <tr style="font-size: 11pt; color: #486B00">
-                  <td>
+                  <th width="33%" align="left"
+                    th:text="#{homeHeader.lastMonth}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Letzter Monat</th>
+                  <th width="33%" align="left"
+                    th:text="#{homeHeader.currentMonth}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Aktueller Monat</th>
+                  <th width="33%" align="left"
+                    th:text="#{homeHeader.currentWeek}"
+                    style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
+                    Aktuelle Woche</th>
+                </tr>
+                <tr>
+                  <td
+                    th:text="${#numbers.formatDecimal(amountLastMonth, 1, 'POINT', 2, 'COMMA')}"
+                    style="font-family: monospace; font-size: 24pt;"
+                    align="left">999,99</td>
+                  <td
+                    th:text="${#numbers.formatDecimal(amountCurrentMonth, 1, 'POINT', 2, 'COMMA')}"
+                    style="font-family: monospace; font-size: 24pt;"
+                    align="left">999,99</td>
+                  <td
+                    th:text="${#numbers.formatDecimal(amountCurrentWeek, 1, 'POINT', 2, 'COMMA')}"
+                    style="font-family: monospace; font-size: 24pt;"
+                    align="left">999,99</td>
+                </tr>
+                <tr>
+                  <td>&nbsp;</td>
+                  <td
+                    th:text="|${#numbers.formatDecimal(percentOfLastMonth, 1, 'POINT', 1, 'COMMA')} %|"
+                    style="font-family: monospace; font-size: 9pt;"
+                    align="left">12,1%</td>
+                  <td
+                    th:text="|${#numbers.formatDecimal(percentOfMonth, 1, 'POINT', 1, 'COMMA')} %|"
+                    style="font-family: monospace; font-size: 9pt;"
+                    align="left">34,2%</td>
+                </tr>
+                <tr>
+                  <td colspan="3" th:text="#{navigationHome}"
+                    style="padding: 20px 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Navigation</td>
+                </tr>
+                <tr style="font-size: 11pt; color: #486B00">
+                  <td colspan="3">
                     <form action="#" th:action="@{/overview}"
                       th:object="${homeForm}" method="POST">
                       <button type="submit" name="gotoWeek"

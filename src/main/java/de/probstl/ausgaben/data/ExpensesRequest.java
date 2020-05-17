@@ -27,6 +27,40 @@ public class ExpensesRequest {
 	private final Date m_EndDate;
 
 	/**
+	 * Create a new object spanning the current Month
+	 * 
+	 * @return New expenses request with the first of the current month as the
+	 *         beginning and the current timestamp as end
+	 */
+	public static ExpensesRequest forCurrentMonth() {
+		LocalDate currentMonth = LocalDate.now();
+		LocalDateTime begin = LocalDateTime.of(LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), 1),
+				LocalTime.of(0, 0, 0));
+		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
+		LocalDateTime end = LocalDateTime.now();
+		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
+
+		return new ExpensesRequest(beginDate, endDate);
+	}
+
+	/**
+	 * Create a new object for the last month
+	 * 
+	 * @return New expenses request with the first of the last month as the
+	 *         beginning and the first of the current month as end
+	 */
+	public static ExpensesRequest forLastMonth() {
+		LocalDate lastMonth = LocalDate.now().minusMonths(1);
+		LocalDateTime begin = LocalDateTime.of(LocalDate.of(lastMonth.getYear(), lastMonth.getMonth(), 1),
+				LocalTime.of(0, 0, 0));
+		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
+		LocalDateTime end = begin.plusMonths(1);
+		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
+
+		return new ExpensesRequest(beginDate, endDate);
+	}
+
+	/**
 	 * Create a new request based on the given month
 	 * 
 	 * @param month The month as integer string
