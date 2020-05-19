@@ -14,9 +14,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.util.NavigableMap;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -132,19 +133,29 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		HomeForm homeForm = new HomeForm();
 		homeForm.setSelectedMonth(month);
 
-		double currentWeek = 0.0;
+		List<Double> weeksList = new ArrayList<Double>();
 		double currentMonth = 0.0;
 		double lastMonth = 0.0;
 		double percentOfLastMonth = 0.0;
 		double percentOfMonth = 0.0;
+		double currentWeek = 0.0;
 
 		String collection = m_FirestoreService.extractCollection(auth);
 		if (collection != null) {
-			currentWeek = m_FirestoreService.findAmount(ExpensesRequest.forCurrentWeek(), collection);
 			currentMonth = m_FirestoreService.findAmount(ExpensesRequest.forCurrentMonth(), collection);
 			lastMonth = m_FirestoreService.findAmount(ExpensesRequest.forLastMonth(), collection);
 			percentOfLastMonth = (currentMonth > 0 && lastMonth > 0) ? (currentMonth / lastMonth) * 100.0 : 0.0;
 			percentOfMonth = (currentMonth > 0 && currentWeek > 0) ? (currentWeek / currentMonth) * 100.0 : 0.0;
+
+			NavigableMap<Integer, Double> monthWeeks = m_FirestoreService.findByWeek(ExpensesRequest.forCurrentMonth(),
+					collection);
+			final double m = currentMonth;
+			if (monthWeeks != null && !monthWeeks.isEmpty()) {
+				currentWeek = monthWeeks.lastEntry().getValue().doubleValue();
+				weeksList = monthWeeks.values().stream()
+						.mapToDouble(x -> (x.doubleValue() > 0 && m > 0) ? (x.doubleValue() / m) * 100.0 : 0.0).boxed()
+						.collect(Collectors.toList());
+			}
 		}
 
 		model.addAttribute("monthSelection", monthList);
@@ -154,6 +165,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		model.addAttribute("amountCurrentWeek", Double.valueOf(currentWeek));
 		model.addAttribute("percentOfLastMonth", Double.valueOf(percentOfLastMonth));
 		model.addAttribute("percentOfMonth", Double.valueOf(percentOfMonth));
+		model.addAttribute("weeksList", weeksList);
 
 		return "home";
 	}
@@ -311,7 +323,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		} else {
 			cityMapping = Collections.emptyMap();
 		}
-		
+
 		final MailInfo mailInfo = new MailInfo(request.getBeginDate(), request.getEndDate());
 		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));
 

@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,7 +16,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -30,6 +33,7 @@ import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 
@@ -221,6 +225,71 @@ public class FirestoreService {
 		}
 
 		return sum.doubleValue();
+	}
+
+	/**
+	 * Find the Amounts by week
+	 * 
+	 * @param request    The time interval
+	 * @param collection The collection
+	 * @return Map of the week as key and the expense amount within the week
+	 */
+	public NavigableMap<Integer, Double> findByWeek(ExpensesRequest request, String collection) {
+		final Instant start = Instant.now();
+		Duration queryTime = null;
+
+		QuerySnapshot queryResult = null;
+		try {
+			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select("amount", "timestamp")
+					.whereGreaterThan("timestamp", request.getBeginDate())
+					.whereLessThan("timestamp", request.getEndDate()).orderBy("timestamp").get();
+
+			try {
+				queryResult = future.get();
+			} catch (InterruptedException e) {
+				LOG.warn("waiting for result interrupted!");
+				Thread.currentThread().interrupt();
+			} catch (ExecutionException e) {
+				LOG.error("could not retrieve result from firestore!", e.getCause());
+			}
+		} finally {
+			queryTime = Duration.between(start, Instant.now());
+		}
+
+		if (queryResult == null || queryResult.isEmpty()) {
+			return null;
+		}
+
+		LOG.info("Query executed in {} ms. Snapshot timestamp: {}", Long.valueOf(queryTime.toMillis()),
+				queryResult.getReadTime());
+
+		final NavigableMap<Integer, Double> toReturn = new TreeMap<Integer, Double>();
+
+		for (QueryDocumentSnapshot documentSnapshot : queryResult.getDocuments()) {
+			Instant timestamp = documentSnapshot.getTimestamp("timestamp").toDate().toInstant();
+			Integer week = Integer.valueOf(timestamp.atZone(m_SystemTimezone).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+			BigDecimal value = BigDecimal.valueOf(documentSnapshot.getDouble("amount"));
+
+			Double sum = toReturn.get(week);
+			if (sum == null) {
+				toReturn.put(week, Double.valueOf(value.doubleValue()));
+			} else {
+				double newValue = BigDecimal.valueOf(sum.doubleValue()).add(value).doubleValue();
+				toReturn.put(week, Double.valueOf(newValue));
+			}
+		}
+
+		// Fill weeks without found expenses
+		ZonedDateTime currentDateTime = request.getBeginDate().toInstant().atZone(m_SystemTimezone);
+		while (currentDateTime.isBefore(request.getEndDate().toInstant().atZone(m_SystemTimezone))) {
+			int currentWeek = currentDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+			if (!toReturn.containsKey(Integer.valueOf(currentWeek))) {
+				toReturn.put(Integer.valueOf(currentWeek), Double.valueOf(0.0));
+			}
+			currentDateTime = currentDateTime.plusDays(1);
+		}
+
+		return toReturn;
 	}
 
 	/**

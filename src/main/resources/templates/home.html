@@ -33,15 +33,15 @@
                     style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Ausgabenstand</td>
                 </tr>
                 <tr style="font-size: 11pt; color: #486B00">
-                  <th width="33%" align="left"
+                  <th width="28%" align="left"
                     th:text="#{homeHeader.lastMonth}"
                     style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
                     Letzter Monat</th>
-                  <th width="33%" align="left"
+                  <th width="28%" align="left"
                     th:text="#{homeHeader.currentMonth}"
                     style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
                     Aktueller Monat</th>
-                  <th width="33%" align="left"
+                  <th width="54%" align="left"
                     th:text="#{homeHeader.currentWeek}"
                     style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
                     Aktuelle Woche</th>
@@ -50,15 +50,15 @@
                   <td
                     th:text="${#numbers.formatDecimal(amountLastMonth, 1, 'POINT', 2, 'COMMA')}"
                     style="font-family: monospace; font-size: 24pt;"
-                    align="left">999,99</td>
+                    align="left">9.999,99</td>
                   <td
                     th:text="${#numbers.formatDecimal(amountCurrentMonth, 1, 'POINT', 2, 'COMMA')}"
                     style="font-family: monospace; font-size: 24pt;"
-                    align="left">999,99</td>
+                    align="left">9.999,99</td>
                   <td
                     th:text="${#numbers.formatDecimal(amountCurrentWeek, 1, 'POINT', 2, 'COMMA')}"
                     style="font-family: monospace; font-size: 24pt;"
-                    align="left">999,99</td>
+                    align="left">9.999,99</td>
                 </tr>
                 <tr>
                   <td>&nbsp;</td>
@@ -66,10 +66,20 @@
                     th:text="|${#numbers.formatDecimal(percentOfLastMonth, 1, 'POINT', 1, 'COMMA')} %|"
                     style="font-family: monospace; font-size: 9pt;"
                     align="left">12,1%</td>
-                  <td
-                    th:text="|${#numbers.formatDecimal(percentOfMonth, 1, 'POINT', 1, 'COMMA')} %|"
-                    style="font-family: monospace; font-size: 9pt;"
-                    align="left">34,2%</td>
+                  <td>
+                    <table border="0">
+                      <tr>
+                        <td th:each="week,weekStat : ${weeksList}" width="45px">
+                          <span th:if="${weekStat.last}"
+                          th:text="|${#numbers.formatDecimal(week, 1, 'POINT', 1, 'COMMA')} %|"
+                          style="font-family: monospace; font-size: 9pt;">10,0%</span>
+                          <span th:unless="${weekStat.last}"
+                          th:text="|${#numbers.formatDecimal(week, 1, 'POINT', 1, 'COMMA')} %|"
+                          style="font-family: monospace; font-size: 7pt;">10,0%</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
                 </tr>
                 <tr>
                   <td colspan="3" th:text="#{navigationHome}"
