@@ -137,18 +137,17 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		double currentMonth = 0.0;
 		double lastMonth = 0.0;
 		double percentOfLastMonth = 0.0;
-		double percentOfMonth = 0.0;
 		double currentWeek = 0.0;
 
 		String collection = m_FirestoreService.extractCollection(auth);
 		if (collection != null) {
-			currentMonth = m_FirestoreService.findAmount(ExpensesRequest.forCurrentMonth(), collection);
 			lastMonth = m_FirestoreService.findAmount(ExpensesRequest.forLastMonth(), collection);
-			percentOfLastMonth = (currentMonth > 0 && lastMonth > 0) ? (currentMonth / lastMonth) * 100.0 : 0.0;
-			percentOfMonth = (currentMonth > 0 && currentWeek > 0) ? (currentWeek / currentMonth) * 100.0 : 0.0;
 
-			NavigableMap<Integer, Double> monthWeeks = m_FirestoreService.findByWeek(ExpensesRequest.forCurrentMonth(),
-					collection);
+			final NavigableMap<Integer, Double> monthWeeks = m_FirestoreService
+					.findByWeek(ExpensesRequest.forCurrentMonth(), collection);
+			currentMonth = monthWeeks.values().stream().mapToDouble(Double::doubleValue).sum();
+			percentOfLastMonth = (currentMonth > 0 && lastMonth > 0) ? (currentMonth / lastMonth) * 100.0 : 0.0;
+
 			final double m = currentMonth;
 			if (monthWeeks != null && !monthWeeks.isEmpty()) {
 				currentWeek = monthWeeks.lastEntry().getValue().doubleValue();
@@ -164,7 +163,6 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		model.addAttribute("amountCurrentMonth", Double.valueOf(currentMonth));
 		model.addAttribute("amountCurrentWeek", Double.valueOf(currentWeek));
 		model.addAttribute("percentOfLastMonth", Double.valueOf(percentOfLastMonth));
-		model.addAttribute("percentOfMonth", Double.valueOf(percentOfMonth));
 		model.addAttribute("weeksList", weeksList);
 
 		return "home";
