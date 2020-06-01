@@ -238,6 +238,8 @@ public class FirestoreService {
 		final Instant start = Instant.now();
 		Duration queryTime = null;
 
+		final NavigableMap<Integer, Double> toReturn = new TreeMap<Integer, Double>();
+		
 		QuerySnapshot queryResult = null;
 		try {
 			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select("amount", "timestamp")
@@ -257,13 +259,11 @@ public class FirestoreService {
 		}
 
 		if (queryResult == null || queryResult.isEmpty()) {
-			return null;
+			return toReturn;
 		}
 
 		LOG.info("Query executed in {} ms. Snapshot timestamp: {}", Long.valueOf(queryTime.toMillis()),
 				queryResult.getReadTime());
-
-		final NavigableMap<Integer, Double> toReturn = new TreeMap<Integer, Double>();
 
 		for (QueryDocumentSnapshot documentSnapshot : queryResult.getDocuments()) {
 			Instant timestamp = documentSnapshot.getTimestamp("timestamp").toDate().toInstant();

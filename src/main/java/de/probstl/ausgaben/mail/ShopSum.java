@@ -6,20 +6,25 @@ package de.probstl.ausgaben.mail;
 public class ShopSum implements Comparable<ShopSum> {
 
 	/** The name of the shop */
-	private String m_Shop;
+	private final String m_Shop;
 
 	/** The amount of the shop */
-	private Double m_Sum;
+	private final Double m_Sum;
+
+	/** The expenses count for this shop */
+	private final int m_Count;
 
 	/**
-	 * Construcotr for new Object
+	 * Constructor for new Object
 	 * 
-	 * @param m_Shop
-	 * @param m_Sum
+	 * @param shop The name of the shop 
+	 * @param sum The sum of expenses in the time period
+	 * @param count The count of expenses in the time period
 	 */
-	public ShopSum(String shop, Double sum) {
+	public ShopSum(String shop, Double sum, int count) {
 		this.m_Shop = shop;
 		this.m_Sum = sum;
+		this.m_Count = count;
 	}
 
 	@Override
@@ -35,13 +40,6 @@ public class ShopSum implements Comparable<ShopSum> {
 	}
 
 	/**
-	 * @param m_Shop the m_Shop to set
-	 */
-	public void setShop(String shop) {
-		this.m_Shop = shop;
-	}
-
-	/**
 	 * @return the m_Sum
 	 */
 	public Double getSum() {
@@ -49,9 +47,9 @@ public class ShopSum implements Comparable<ShopSum> {
 	}
 
 	/**
-	 * @param m_Sum the m_Sum to set
+	 * @return the m_Count
 	 */
-	public void setSum(Double sum) {
-		this.m_Sum = sum;
+	public int getCount() {
+		return m_Count;
 	}
 }

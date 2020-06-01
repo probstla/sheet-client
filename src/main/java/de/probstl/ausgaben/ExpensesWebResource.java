@@ -120,7 +120,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		LocalDate startDate = LocalDate.of(2020, Month.APRIL, 1);
 
 		String month = null;
-		while (startDate.isBefore(LocalDate.now())) {
+		while (startDate.isBefore(LocalDate.now()) || startDate.equals(LocalDate.now())) {
 
 			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN, requestLocale));
 			LOG.debug("Adding month for selection {}", month);

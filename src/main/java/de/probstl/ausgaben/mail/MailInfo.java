@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -30,7 +32,7 @@ public class MailInfo {
 	private final Collection<CityInfo> m_CityList = new TreeSet<CityInfo>();
 
 	/** Map with all shops and their sums */
-	private final Map<String, Double> m_ShopSum = new HashMap<String, Double>();
+	private final Map<String, List<Expense>> m_ShopSum = new HashMap<String, List<Expense>>();
 
 	/**
 	 * Constructor
@@ -51,13 +53,7 @@ public class MailInfo {
 	public void addCityInfo(CityInfo info) {
 		double sumCity = info.getExpenses().stream().mapToDouble(x -> x.getAmountDouble().doubleValue()).sum();
 		m_Sum = m_Sum.add(BigDecimal.valueOf(sumCity));
-
-		Map<String, List<Expense>> shopMap = info.getExpenses().stream()
-				.collect(Collectors.groupingBy(Expense::getShop));
-		Map<String, Double> shopSumMap = shopMap.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(),
-				x -> x.getValue().stream().mapToDouble(Expense::getAmountDouble).sum()));
-		m_ShopSum.putAll(shopSumMap);
-
+		m_ShopSum.putAll(info.getExpenses().stream().collect(Collectors.groupingBy(Expense::getShop)));
 		m_CityList.add(info);
 	}
 
@@ -77,9 +73,12 @@ public class MailInfo {
 	 *         value
 	 */
 	public Collection<ShopSum> getSumShops() {
-
-		return m_ShopSum.entrySet().stream().map(x -> new ShopSum(x.getKey(), x.getValue())).sorted()
-				.collect(Collectors.toList());
+		final SortedSet<ShopSum> toReturn = new TreeSet<ShopSum>();
+		for (Entry<String, List<Expense>> entry : m_ShopSum.entrySet()) {
+			double sum = entry.getValue().stream().mapToDouble(Expense::getAmountDouble).sum();
+			toReturn.add(new ShopSum(entry.getKey(), Double.valueOf(sum), entry.getValue().size()));
+		}
+		return toReturn;
 	}
 
 	/**
