@@ -1,5 +1,6 @@
 package de.probstl.ausgaben.data;
 
+import java.text.MessageFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -54,7 +55,7 @@ public class ExpensesRequest {
 		LocalDateTime begin = LocalDateTime.of(LocalDate.of(lastMonth.getYear(), lastMonth.getMonth(), 1),
 				LocalTime.of(0, 0, 0));
 		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
-		LocalDateTime end = begin.plusMonths(1);
+		LocalDateTime end = begin.plusMonths(1).minusMinutes(1);
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
 
 		return new ExpensesRequest(beginDate, endDate);
@@ -79,7 +80,7 @@ public class ExpensesRequest {
 
 		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
 
-		LocalDateTime end = begin.plusMonths(1).minusDays(1);
+		LocalDateTime end = begin.plusMonths(1).minusMinutes(1);
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
 
 		return new ExpensesRequest(beginDate, endDate);
@@ -96,7 +97,7 @@ public class ExpensesRequest {
 		LocalDateTime begin = LocalDateTime.of(monday, LocalTime.of(0, 0, 0));
 		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
 
-		LocalDateTime end = begin.plusDays(7);
+		LocalDateTime end = begin.plusDays(7).minusMinutes(1);
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
 
 		return new ExpensesRequest(beginDate, endDate);
@@ -125,5 +126,13 @@ public class ExpensesRequest {
 	 */
 	public Date getEndDate() {
 		return m_EndDate;
+	}
+
+	@Override
+	public String toString() {
+		return MessageFormat.format(
+				"time interval [{0,date,yyyy-MM-dd} {0,time,HH:mm:ss}] => [{1,date,yyyy-MM-dd} {1,time,HH:mm:ss}]",
+				getBeginDate(), getEndDate());
+
 	}
 }

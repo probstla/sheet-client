@@ -191,11 +191,13 @@ public class FirestoreService {
 		final Instant start = Instant.now();
 		Duration queryTime = null;
 
+		LOG.info("Find amounts for {} in collection {}", request, collection);
+
 		QuerySnapshot queryResult = null;
 		try {
 			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select("amount")
-					.whereGreaterThan("timestamp", request.getBeginDate())
-					.whereLessThan("timestamp", request.getEndDate()).orderBy("timestamp").get();
+					.whereGreaterThanOrEqualTo("timestamp", request.getBeginDate())
+					.whereLessThanOrEqualTo("timestamp", request.getEndDate()).orderBy("timestamp").get();
 
 			try {
 				queryResult = future.get();
@@ -238,13 +240,15 @@ public class FirestoreService {
 		final Instant start = Instant.now();
 		Duration queryTime = null;
 
+		LOG.info("Find expenses in week from {} in collection {}", request, collection);
+
 		final NavigableMap<Integer, Double> toReturn = new TreeMap<Integer, Double>();
-		
+
 		QuerySnapshot queryResult = null;
 		try {
 			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select("amount", "timestamp")
-					.whereGreaterThan("timestamp", request.getBeginDate())
-					.whereLessThan("timestamp", request.getEndDate()).orderBy("timestamp").get();
+					.whereGreaterThanOrEqualTo("timestamp", request.getBeginDate())
+					.whereLessThanOrEqualTo("timestamp", request.getEndDate()).orderBy("timestamp").get();
 
 			try {
 				queryResult = future.get();
@@ -301,8 +305,7 @@ public class FirestoreService {
 	 *         was an error or no data was found
 	 */
 	public Collection<Expense> findBetween(ExpensesRequest request, String collection) {
-		LOG.info("Find expenses from {} to {} in collection {}", request.getBeginDate(), request.getEndDate(),
-				collection);
+		LOG.info("Find expenses from {} in collection {}", request, collection);
 
 		final Instant start = Instant.now();
 		Duration queryTime = null;
@@ -310,8 +313,8 @@ public class FirestoreService {
 		QuerySnapshot queryResult = null;
 		try {
 			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection)
-					.whereGreaterThan("timestamp", request.getBeginDate())
-					.whereLessThan("timestamp", request.getEndDate()).orderBy("timestamp").get();
+					.whereGreaterThanOrEqualTo("timestamp", request.getBeginDate())
+					.whereLessThanOrEqualTo("timestamp", request.getEndDate()).orderBy("timestamp").get();
 
 			try {
 				queryResult = future.get();
