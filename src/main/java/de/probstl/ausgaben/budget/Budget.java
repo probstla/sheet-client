@@ -3,7 +3,7 @@ package de.probstl.ausgaben.budget;
 /**
  * A class representing a budget defined in JSON file
  */
-public class Budget {
+public class Budget implements Comparable<Budget> {
 
 	/** Short name of the budget (e.g. Lebensmittel) */
 	private String m_Name;
@@ -12,7 +12,7 @@ public class Budget {
 	private String m_Description;
 
 	/** Amount per month */
-	private double m_Amount;
+	private Double m_Amount;
 
 	/** A regular expression for matching the expense description */
 	private String m_MessageRegex;
@@ -34,12 +34,42 @@ public class Budget {
 	 * @param amount       amount per month
 	 * @param messageRegex regular expression applied to the message
 	 */
-	public Budget(String name, String description, double amount, String messageRegex, String[] shops) {
+	public Budget(String name, String description, Double amount, String messageRegex, String[] shops) {
 		m_Name = name;
 		m_Description = description;
 		m_Amount = amount;
 		m_MessageRegex = messageRegex;
 		m_Shops = shops;
+	}
+
+	@Override
+	public int compareTo(Budget o) {
+		return getName().compareTo(o.getName());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((m_Name == null) ? 0 : m_Name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Budget other = (Budget) obj;
+		if (m_Name == null) {
+			if (other.m_Name != null)
+				return false;
+		} else if (!m_Name.equals(other.m_Name))
+			return false;
+		return true;
 	}
 
 	/**
@@ -73,14 +103,14 @@ public class Budget {
 	/**
 	 * @return the m_Amount
 	 */
-	public double getAmount() {
+	public Double getAmount() {
 		return m_Amount;
 	}
 
 	/**
 	 * @param amount the m_Amount to set
 	 */
-	public void setAmount(double amount) {
+	public void setAmount(Double amount) {
 		this.m_Amount = amount;
 	}
 

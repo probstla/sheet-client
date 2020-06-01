@@ -36,9 +36,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import de.probstl.ausgaben.budget.Budget;
+import de.probstl.ausgaben.budget.BudgetService;
 import de.probstl.ausgaben.data.Expense;
 import de.probstl.ausgaben.data.ExpensesRequest;
 import de.probstl.ausgaben.data.HomeForm;
+import de.probstl.ausgaben.mail.BudgetInfo;
 import de.probstl.ausgaben.mail.CityInfo;
 import de.probstl.ausgaben.mail.MailInfo;
 
@@ -63,6 +66,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		registry.addViewController("/").setViewName("redirect:/home");
 		registry.addViewController("/login").setViewName("login");
 	}
+
+	/** The budget service for tracking expenses by budget */
+	@Autowired
+	private BudgetService m_BudgetService;
 
 	/**
 	 * Takes the input from the landing page and load the selected data
@@ -321,6 +328,11 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		} else {
 			cityMapping = Collections.emptyMap();
 		}
+
+		Map<Budget, Double> budgets = m_BudgetService.createFromCities(auth, cityMapping.values());
+		List<BudgetInfo> budgetInfo = budgets.entrySet().stream().map(x -> new BudgetInfo(x.getKey(), x.getValue()))
+				.collect(Collectors.toList());
+		model.addAttribute("budgets", budgetInfo);
 
 		final MailInfo mailInfo = new MailInfo(request.getBeginDate(), request.getEndDate());
 		cityMapping.values().stream().forEach(x -> mailInfo.addCityInfo(x));

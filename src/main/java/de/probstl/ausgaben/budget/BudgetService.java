@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.probstl.ausgaben.data.Expense;
+import de.probstl.ausgaben.mail.CityInfo;
 
 @Component
 public class BudgetService {
@@ -36,6 +37,7 @@ public class BudgetService {
 	/**
 	 * Read the budget definition and try to match the given expenses.
 	 * 
+	 * @param auth     Authenticated user
 	 * @param expenses The expenses. Can be <code>null</code> or empty
 	 * @return A Map with the budget and the corresponding amount
 	 */
@@ -50,6 +52,19 @@ public class BudgetService {
 		}
 
 		return toReturn;
+	}
+
+	/**
+	 * Create the budgets from the city info object
+	 * 
+	 * @param auth   Authenticated user
+	 * @param cities Collection of cities which contains expenses
+	 * @return A Map with the budget and the corresponding amount
+	 */
+	public Map<Budget, Double> createFromCities(Authentication auth, Collection<CityInfo> cities) {
+		final Collection<Expense> allCities = new ArrayList<Expense>();
+		cities.stream().forEach(x -> allCities.addAll(x.getExpenses()));
+		return createFromExpenses(auth, allCities);
 	}
 
 	/**
@@ -78,8 +93,10 @@ public class BudgetService {
 			return filtered; // Without shops just filter by regex
 		}
 
-		Set<String> shops = new HashSet<String>(Arrays.asList(budget.getShops()));
-		return filtered.stream().filter(x -> shops.contains(x.getShop())).collect(Collectors.toList());
+		Set<String> shopsLowerCase = Arrays.asList(budget.getShops()).stream().map(x -> x.toLowerCase())
+				.collect(Collectors.toSet());
+		return filtered.stream().filter(x -> shopsLowerCase.contains(x.getShop().toLowerCase()))
+				.collect(Collectors.toList());
 	}
 
 	/**

@@ -1,17 +1,29 @@
 [
 	{
-		"name": "Lebensmittel",
-		"description": "Alle Ausgaben wie Bäcker, Eisessen etc.",
-		"amount": 100.0,
+		"name": "Bäcker",
+		"description": "Summiert alle Ausgaben bei bekannten Bäckern",
+		"amount": 40.0,
 		"shops": [
 			"Betz",
-			"Gelatok",
-			"Eiscafé Gelato",
 			"Mareis",
+			"Wackerl",
+			"Frühmorgen",
+			"Rauchensteiner",
+			"Gschaider"
+		]
+	},
+	{
+		"name": "Lebensmittel",
+		"description": "Alle Ausgaben im Super- oder Wochenmarkt sowie Fisch",
+		"amount": 100.0,
+		"shops": [
 			"EDEKA",
 			"Rewe",
-			"Eierautomat",
-			"Gründl"
+			"Aldi",
+			"Rewe",
+			"Lidl",
+			"Gründl",
+			"Gumberger"
 		]
 	}
 ]
