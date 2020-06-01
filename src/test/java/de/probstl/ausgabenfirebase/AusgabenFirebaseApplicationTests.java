@@ -55,7 +55,7 @@ class AusgabenFirebaseApplicationTests {
 					.orderBy("timestamp").get();
 
 			for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {
-				Expense ausgabe = new Expense();
+				Expense ausgabe = new Expense(document.getId());
 				ausgabe.setShop(document.getString("shop"));
 				ausgabe.setCity(document.getString("city"));
 				ausgabe.setMessage(document.getString("message"));

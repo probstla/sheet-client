@@ -261,27 +261,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return A Category or an empty string when the category could not be assigned
 	 */
 	private String getCategory(Authentication auth, Expense expense) {
-
-		if (!"manu".equals(auth.getName())) {
-			return "";
-		}
-
-		if (expense.getMessage() != null && expense.getMessage().indexOf("Geschenk") >= 0) {
-			return "Geschenkefond";
-		} else if (expense.getShop() != null) {
-			if (expense.getShop().equals("Challenge")) {
-				return "52 Wochenchallenge";
-			} else if ("Gründl".equalsIgnoreCase(expense.getShop().trim())
-					|| "Rewe".equalsIgnoreCase(expense.getShop().trim())
-					|| "EDEKA".equalsIgnoreCase(expense.getShop().trim())
-					|| "DM".equalsIgnoreCase(expense.getShop().trim())
-					|| "Eierautomat".equalsIgnoreCase(expense.getShop().trim())
-					|| "Betz".equalsIgnoreCase(expense.getShop().trim())) {
-				return "Lebensmittel";
-			}
-		}
-
-		return "";
+		String budget = m_BudgetService.findBudget(auth, expense);
+		return budget == null ? "" : budget;
 	}
 
 	/**
@@ -330,8 +311,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		}
 
 		Map<Budget, Double> budgets = m_BudgetService.createFromCities(auth, cityMapping.values());
-		List<BudgetInfo> budgetInfo = budgets.entrySet().stream().map(x -> new BudgetInfo(x.getKey(), x.getValue()))
-				.collect(Collectors.toList());
+		List<BudgetInfo> budgetInfo = budgets.entrySet().stream().filter(x -> x.getValue().doubleValue() > 0)
+				.map(x -> new BudgetInfo(x.getKey(), x.getValue())).collect(Collectors.toList());
 		model.addAttribute("budgets", budgetInfo);
 
 		final MailInfo mailInfo = new MailInfo(request.getBeginDate(), request.getEndDate());

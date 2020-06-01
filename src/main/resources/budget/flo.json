@@ -23,7 +23,23 @@
 			"Rewe",
 			"Lidl",
 			"Gründl",
-			"Gumberger"
+			"Gumberger",
+			"Eierautomat"
 		]
+	},
+	{
+		"name": "Genuss",
+		"description": "Ausgaben für Eis, Essen gehen oder Snacks zwischendurch",
+		"amount": 50.0,
+		"shops": [
+			"Gelatok",
+			"Eiscafé Florenz",
+			"Eiscafé Gelato"
+		]
+	},
+	{
+		"name": "Urlaub",
+		"description": "Ausgaben während dem Urlaub",
+		"amount": 200.0
 	}
 ]

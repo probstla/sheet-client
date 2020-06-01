@@ -48,13 +48,32 @@ public class TestBudgetService {
 		budget.setMessageRegex(".*Auto.*");
 
 		Collection<Expense> expenses = new ArrayList<Expense>();
-		Expense e1 = new Expense();
+		Expense e1 = new Expense("0");
 		e1.setMessage("Autowaschmittel");
 		expenses.add(e1);
 
 		final BudgetService service = new BudgetService();
 		Collection<Expense> matching = service.findMatching(budget, expenses);
 		assertFalse(matching.isEmpty());
+	}
+
+	/**
+	 * Testcase for automatic regex generator based on budget name
+	 */
+	@Test
+	public void testEmptyRegex() {
+		Budget budget = new Budget();
+		budget.setName("Auto");
+
+		Collection<Expense> expenses = new ArrayList<Expense>();
+		Expense e1 = new Expense("0");
+		e1.setMessage("Waschstraße #auto");
+		expenses.add(e1);
+
+		final BudgetService service = new BudgetService();
+		Collection<Expense> matching = service.findMatching(budget, expenses);
+		assertFalse(matching.isEmpty());
+
 	}
 
 	/**
@@ -67,17 +86,17 @@ public class TestBudgetService {
 		budget.setShops(new String[] { "Betz", "Wackerl", "Mareis", "Frühmorgen" });
 
 		Collection<Expense> expenses = new ArrayList<Expense>();
-		Expense e1 = new Expense();
+		Expense e1 = new Expense("0");
 		e1.setShop("Betz");
 		e1.setAmountDouble(2.0);
 		expenses.add(e1);
 
-		e1 = new Expense();
+		e1 = new Expense("1");
 		e1.setShop("EDEKA");
 		e1.setAmountDouble(2.0);
 		expenses.add(e1);
 
-		e1 = new Expense();
+		e1 = new Expense("2");
 		e1.setShop("Wackerl");
 		e1.setAmountDouble(2.0);
 		expenses.add(e1);

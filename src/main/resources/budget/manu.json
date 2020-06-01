@@ -1,0 +1,34 @@
+[
+	{
+		"name": "Geschenkefond",
+		"description": "Ausgaben für Geschenke",
+		"amount": 0.0,
+		"messageRegex": ".*Geschenk.*"
+	},
+	{
+		"name": "52 Wochenchallenge",
+		"description": "Einzahlungen für die 52 Wochen Challenge",
+		"amount": 0.0,
+		"shops": [
+			"Challenge"
+		]
+	},
+	{
+		"name": "Lebensmittel",
+		"description": "Alle Ausgaben für Lebensmittel",
+		"amount": 100.0,
+		"shops": [
+			"Gründl",
+			"Rewe",
+			"EDEKA",
+			"DM",
+			"Eierautomat",
+			"Betz"
+		]
+	},
+	{
+		"name": "Eigene Anschaffungen",
+		"description": "Alle eigenen Ausgaben die in keine andere Kategorie fallen",
+		"amount": 200.0
+	}
+]

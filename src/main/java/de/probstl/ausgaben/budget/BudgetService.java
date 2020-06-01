@@ -68,7 +68,30 @@ public class BudgetService {
 	}
 
 	/**
-	 * Find the matching expenses by the given budget
+	 * Find a budget for the given expense
+	 * 
+	 * @param auth    Authenticated user
+	 * @param expense The expense where the budget is asked
+	 * @return Name of the budget or <code>null</code> if there is no matching
+	 *         budget
+	 */
+	public String findBudget(Authentication auth, Expense expense) {
+		final Collection<Budget> budgets = readDefinition(auth.getName());
+		for (Budget budget : budgets) {
+			Collection<Expense> matching = findMatching(budget, Collections.singletonList(expense));
+			if (matching.isEmpty()) {
+				return budget.getName();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Find the matching expenses by the given budget. The expenses are first
+	 * checked against a regular expression. If the budget has no regular expression
+	 * a hash-tag based regular expression is created. After that the expeses are
+	 * checked against the shops given in the budget. All unique expenses (based on
+	 * id) are returned.
 	 * 
 	 * @param budget   the budget definition
 	 * @param expenses the found expenses that are checked against the budget
@@ -76,27 +99,35 @@ public class BudgetService {
 	 */
 	Collection<Expense> findMatching(Budget budget, Collection<Expense> expenses) {
 
-		Collection<Expense> filtered = expenses;
+		final Set<Expense> toReturn = new HashSet<Expense>();
 
 		String regex = budget.getMessageRegex();
-		if (regex != null && !regex.trim().isEmpty()) {
-			Pattern pattern = null;
-			try {
-				pattern = Pattern.compile(regex);
-				filtered = findByRegex(pattern, expenses);
-			} catch (PatternSyntaxException e) {
-				m_Log.error("invalid pattern: " + regex, e);
-			}
+		if (regex == null || regex.trim().isEmpty()) {
+			regex = ".*(#".concat(budget.getName().replaceAll("\\s", "").toLowerCase()).concat(").*");
 		}
 
-		if (budget.getShops() == null || budget.getShops().length == 0) {
-			return filtered; // Without shops just filter by regex
+		Collection<Expense> byRegex = Collections.emptyList();
+		Collection<Expense> byShop = Collections.emptyList();
+
+		Pattern pattern = null;
+		try {
+			pattern = Pattern.compile(regex);
+			byRegex = findByRegex(pattern, expenses);
+		} catch (PatternSyntaxException e) {
+			m_Log.error("invalid pattern: " + regex, e);
 		}
 
-		Set<String> shopsLowerCase = Arrays.asList(budget.getShops()).stream().map(x -> x.toLowerCase())
-				.collect(Collectors.toSet());
-		return filtered.stream().filter(x -> shopsLowerCase.contains(x.getShop().toLowerCase()))
-				.collect(Collectors.toList());
+		if (budget.getShops() != null && budget.getShops().length > 0) {
+			Set<String> shopsLowerCase = Arrays.asList(budget.getShops()).stream().map(x -> x.toLowerCase())
+					.collect(Collectors.toSet());
+			byShop = expenses.stream().filter(x -> shopsLowerCase.contains(x.getShop().toLowerCase()))
+					.collect(Collectors.toList());
+		}
+
+		// Add all unique expenses to the result
+		toReturn.addAll(byRegex);
+		toReturn.addAll(byShop);
+		return toReturn;
 	}
 
 	/**
@@ -110,8 +141,18 @@ public class BudgetService {
 
 		final Collection<Expense> toReturn = new ArrayList<Expense>();
 		for (Expense expense : expenses) {
+			if (expense.getMessage() == null) {
+				continue;
+			}
+
 			Matcher matcher = pattern.matcher(expense.getMessage());
 			if (matcher.matches()) {
+				String token = "";
+				if (matcher.groupCount() > 0) {
+					token = matcher.group(1);
+				}
+				m_Log.info("expense {} with message '{}' matches regular expression '{}' with token: '{}'",
+						expense.getId(), expense.getMessage(), pattern.pattern(), token);
 				toReturn.add(expense);
 			}
 		}

@@ -159,7 +159,7 @@ public class FirestoreService {
 	 */
 	protected Expense createFromDocument(DocumentSnapshot document) {
 
-		Expense expense = new Expense();
+		Expense expense = new Expense(document.getId());
 		expense.setShop(document.getString("shop"));
 		expense.setCity(document.getString("city"));
 		expense.setMessage(document.getString("message"));

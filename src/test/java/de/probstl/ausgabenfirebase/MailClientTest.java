@@ -59,16 +59,16 @@ public class MailClientTest {
 		Date from = cal.getTime();
 
 		MailInfo info = new MailInfo(from, to);
-		
+
 		CityInfo landshut = new CityInfo("Landshut");
-		Expense betz = new Expense();
+		Expense betz = new Expense("0");
 		betz.setAmountDouble(Double.valueOf(5));
 		betz.setCity("Landshut");
 		betz.setMessage("Brezen und Zeitung");
 		betz.setShop("Betz");
 		betz.setTimestamp(new Date());
 		landshut.addExpense(betz);
-		Expense wochenmarkt = new Expense();
+		Expense wochenmarkt = new Expense("1");
 		wochenmarkt.setAmountDouble(Double.valueOf(7.6));
 		wochenmarkt.setCity("Landshut");
 		wochenmarkt.setMessage("Gemüse");
@@ -78,7 +78,7 @@ public class MailClientTest {
 		info.addCityInfo(landshut);
 
 		CityInfo dingolfing = new CityInfo("Dingolfing");
-		Expense maccy = new Expense();
+		Expense maccy = new Expense("2");
 		maccy.setAmountDouble(Double.valueOf(7.99));
 		maccy.setCity("Dingolfing");
 		maccy.setMessage("BigMac Sparmenü");
@@ -86,7 +86,7 @@ public class MailClientTest {
 		maccy.setTimestamp(new Date());
 		dingolfing.addExpense(maccy);
 		info.addCityInfo(dingolfing);
-		
+
 		m_ExpensesClient.prepareAndSend(recipient, info);
 		assertReceivedMessage();
 	}
