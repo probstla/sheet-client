@@ -91,6 +91,14 @@
                     style="font-family: monospace; padding-top: 3px; border-top: solid #677077 2px"
                     align="right">6,45 €</td>
                 </tr>
+                <tr>
+                  <td colspan="4" th:text="#{total.sumCard}" align="right"
+                    style="padding-top: 3px">Karte:</td>
+                  <td
+                    th:text="|${#numbers.formatDecimal(city.sumCard, 1, 'POINT', 2, 'COMMA')} ${currency}|"
+                    style="font-family: monospace; padding-top: 3px" align="right">6,45
+                    €</td>
+                </tr>
               </table>
             </td>
           </tr>
@@ -135,9 +143,14 @@
                         <td style="font-family: monospace" align="right"
                           th:text="|${#numbers.formatDecimal(budget.sum, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
                           €</td>
-                        <td style="font-family: monospace" align="right"
+                        <td align="right"><span
+                          th:if="${budget.negative}"
+                          style="font-family: monospace; color: red"
                           th:text="|${#numbers.formatDecimal(budget.remaining, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
-                          €</td>
+                            €</span><span th:unless="${budget.negative}"
+                          style="font-family: monospace;"
+                          th:text="|${#numbers.formatDecimal(budget.remaining, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
+                            €</span></td>
                       </tr>
                       <tr>
                         <td colspan="4" align="right"
@@ -156,7 +169,7 @@
                 style="font-family: sans-serif; font-size: 10pt">
                 <tr>
                   <td colspan="3" th:text="#{header.sumShops}"
-                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">Summen
+                    style="padding: 0 0 5px 0; font: small-caps bold 14pt sans-serif; color: #7D4427">
                     Geschäfte</td>
                 </tr>
                 <tr style="font-size: 11pt; color: #486B00">
@@ -186,9 +199,9 @@
           </tr>
           <tr>
             <td
-              th:text="|#{total.sum} ${#numbers.formatDecimal(sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
+              th:text="|#{total.overall} ${#numbers.formatDecimal(sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
               style="font-family: monospace; font-size: 12pt; padding: 3px 10px 10px 10px; border-top: solid #677077 2px"
-              align="right">Summe: 6,45 €</td>
+              align="right">Gesamt: 6,45 €</td>
           </tr>
           <tr>
             <td bgcolor="#A2C523"

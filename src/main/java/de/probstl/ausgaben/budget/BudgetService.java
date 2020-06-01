@@ -1,7 +1,7 @@
 package de.probstl.ausgaben.budget;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -169,12 +168,12 @@ public class BudgetService {
 	Collection<Budget> readDefinition(String user) {
 
 		try {
-			File definition = ResourceUtils.getFile("classpath:budget/" + user.concat(".json"));
-			if (definition == null) {
+			InputStream stream = BudgetService.class.getResourceAsStream("/budget/" + user + ".json");
+			if (stream == null) {
 				return Collections.emptyList();
 			}
 			ObjectMapper mapper = new ObjectMapper();
-			return mapper.readValue(definition, new TypeReference<List<Budget>>() {
+			return mapper.readValue(stream, new TypeReference<List<Budget>>() {
 			});
 		} catch (IOException e) {
 			m_Log.error("error reading json for budget of user", e);

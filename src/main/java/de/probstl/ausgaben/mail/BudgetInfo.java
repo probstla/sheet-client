@@ -46,4 +46,12 @@ public class BudgetInfo {
 	public Double getRemaining() {
 		return m_Remaining;
 	}
+
+	/**
+	 * @return if <code>true</code> the amount is overridden
+	 */
+	public boolean isNegative() {
+		return m_Remaining != null && m_Remaining.doubleValue() < 0;
+	}
+
 }

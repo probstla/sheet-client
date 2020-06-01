@@ -70,4 +70,14 @@ public class CityInfo implements Comparable<CityInfo> {
 	public Double getSum() {
 		return Double.valueOf(m_Expenses.stream().mapToDouble(x -> x.getAmountDouble().doubleValue()).sum());
 	}
+
+	/**
+	 * Returns the sum of all expenses in the city payed by card
+	 * 
+	 * @return Sum of all expenses by card
+	 */
+	public Double getSumCard() {
+		return Double.valueOf(
+				m_Expenses.stream().filter(x -> !x.isCash()).mapToDouble(x -> x.getAmountDouble().doubleValue()).sum());
+	}
 }
