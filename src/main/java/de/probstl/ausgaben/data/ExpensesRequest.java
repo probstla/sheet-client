@@ -79,7 +79,7 @@ public class ExpensesRequest {
 
 		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
 
-		LocalDateTime end = begin.plusMonths(1);
+		LocalDateTime end = begin.plusMonths(1).minusDays(1);
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
 
 		return new ExpensesRequest(beginDate, endDate);
