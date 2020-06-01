@@ -1,0 +1,18 @@
+[
+	{
+		"name": "Lebensmittel",
+		"description": "Alle Ausgaben wie Bäcker, Eisessen etc.",
+		"amount": 100.0,
+		"shops": [
+			"Betz",
+			"Gelatok",
+			"Eiscafé Gelato",
+			"Mareis",
+			"EDEKA",
+			"Rewe",
+			"Eierautomat",
+			"Gründl"
+		],
+		"messageRegex": ""
+	}
+]
