@@ -49,6 +49,14 @@ public class Expense {
 	}
 
 	/**
+	 * Non-arg constructor is necessary because of the RESTful http-post to create a
+	 * new expense from JSON!
+	 */
+	public Expense() {
+		this("0");
+	}
+
+	/**
 	 * @return id
 	 */
 	public String getId() {
