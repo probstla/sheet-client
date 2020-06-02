@@ -17,7 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -310,8 +312,18 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			cityMapping = Collections.emptyMap();
 		}
 
-		Map<Budget, Double> budgets = m_BudgetService.createFromCities(auth, cityMapping.values());
-		List<BudgetInfo> budgetInfo = budgets.entrySet().stream().filter(x -> x.getValue().doubleValue() > 0)
+		final Map<Budget, Set<Expense>> budgetExpenses = m_BudgetService.createFromCities(auth, cityMapping.values());
+		final Map<Budget, Double> budgetSum = budgetExpenses.entrySet().stream().collect(Collectors
+				.toMap(x -> x.getKey(), y -> y.getValue().stream().mapToDouble(Expense::getAmountDouble).sum()));
+		for (Entry<Budget, Set<Expense>> budgetEntry : budgetExpenses.entrySet()) {
+			budgetEntry.getValue().stream().forEach(x -> {
+				if (cityMapping.containsKey(x.getCity())) {
+					cityMapping.get(x.getCity()).setBudget(x, budgetEntry.getKey());
+				}
+			});
+		}
+
+		final List<BudgetInfo> budgetInfo = budgetSum.entrySet().stream().filter(x -> x.getValue().doubleValue() > 0)
 				.map(x -> new BudgetInfo(x.getKey(), x.getValue())).collect(Collectors.toList());
 		model.addAttribute("budgets", budgetInfo);
 

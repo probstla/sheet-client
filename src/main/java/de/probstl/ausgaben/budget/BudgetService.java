@@ -40,13 +40,13 @@ public class BudgetService {
 	 * @param expenses The expenses. Can be <code>null</code> or empty
 	 * @return A Map with the budget and the corresponding amount
 	 */
-	public Map<Budget, Double> createFromExpenses(Authentication auth, Collection<Expense> expenses) {
+	public Map<Budget, Set<Expense>> createFromExpenses(Authentication auth, Collection<Expense> expenses) {
 
-		final Map<Budget, Double> toReturn = new TreeMap<Budget, Double>();
+		final Map<Budget, Set<Expense>> toReturn = new TreeMap<Budget, Set<Expense>>();
 
 		final Collection<Budget> budgets = readDefinition(auth.getName());
 		for (Budget budget : budgets) {
-			Double sum = findMatching(budget, expenses).stream().mapToDouble(x -> x.getAmountDouble()).sum();
+			Set<Expense> sum = findMatching(budget, expenses);
 			toReturn.put(budget, sum);
 		}
 
@@ -60,7 +60,7 @@ public class BudgetService {
 	 * @param cities Collection of cities which contains expenses
 	 * @return A Map with the budget and the corresponding amount
 	 */
-	public Map<Budget, Double> createFromCities(Authentication auth, Collection<CityInfo> cities) {
+	public Map<Budget, Set<Expense>> createFromCities(Authentication auth, Collection<CityInfo> cities) {
 		final Collection<Expense> allCities = new ArrayList<Expense>();
 		cities.stream().forEach(x -> allCities.addAll(x.getExpenses()));
 		return createFromExpenses(auth, allCities);
@@ -96,7 +96,7 @@ public class BudgetService {
 	 * @param expenses the found expenses that are checked against the budget
 	 * @return matching expenses, never <code>null</code>
 	 */
-	Collection<Expense> findMatching(Budget budget, Collection<Expense> expenses) {
+	Set<Expense> findMatching(Budget budget, Collection<Expense> expenses) {
 
 		final Set<Expense> toReturn = new HashSet<Expense>();
 

@@ -3,8 +3,11 @@ package de.probstl.ausgaben.mail;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import de.probstl.ausgaben.budget.Budget;
 import de.probstl.ausgaben.data.Expense;
 
 /**
@@ -17,6 +20,9 @@ public class CityInfo implements Comparable<CityInfo> {
 
 	/** The list of all expenses */
 	private final List<Expense> m_Expenses = new ArrayList<Expense>();
+
+	/** The mapping of the Expenses to budgets */
+	private final Map<Expense, Budget> m_ExpenseBudget = new HashMap<Expense, Budget>();
 
 	/**
 	 * Constructor
@@ -79,5 +85,46 @@ public class CityInfo implements Comparable<CityInfo> {
 	public Double getSumCard() {
 		return Double.valueOf(
 				m_Expenses.stream().filter(x -> !x.isCash()).mapToDouble(x -> x.getAmountDouble().doubleValue()).sum());
+	}
+
+	/**
+	 * Returns the displayed message for the expense. If there is a budget for the
+	 * expense the corresponding hashtag is filtered from the message. Otherwise the
+	 * complete message is returned
+	 * 
+	 * @param expense The expense
+	 * @return The message of the expense filtered by the budget hashtag
+	 */
+	public String getDisplayedMessage(Expense expense) {
+		Budget budget = m_ExpenseBudget.get(expense);
+		if (budget != null) {
+			String hashTag = "#" + budget.getName().toLowerCase();
+			return expense.getMessage().replaceAll(hashTag, "");
+		}
+		return expense.getMessage();
+	}
+
+	/**
+	 * Get the budget for the given expense
+	 * 
+	 * @param expense The expense
+	 * @return A hashtag string for the found budget or an empty string
+	 */
+	public String getBudgetInfo(Expense expense) {
+		Budget budget = m_ExpenseBudget.get(expense);
+		if (budget != null) {
+			return " #" + budget.getName().toLowerCase();
+		}
+		return "";
+	}
+
+	/**
+	 * A budget was found for the given expense
+	 * 
+	 * @param expense The expense
+	 * @param budget  The found budget for the expense
+	 */
+	public void setBudget(Expense expense, Budget budget) {
+		m_ExpenseBudget.put(expense, budget);
 	}
 }
