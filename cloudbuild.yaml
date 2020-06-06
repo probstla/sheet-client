@@ -15,7 +15,7 @@ steps:
    args      : ['push', 'probstl/ausgaben-firebase']
  - name      : 'gcr.io/cloud-builders/docker'
    entrypoint: 'bash'
-   args      : ['-c', 'hostname -I']
+   args      : ['-c', 'hostname']
    env       :
      - 'CLOUDSDK_COMPUTE_ZONE=europe-west3'
 images       : ['probstl/ausgaben-firebase:latest']
