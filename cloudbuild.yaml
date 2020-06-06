@@ -1,18 +1,18 @@
 steps:
-- name: maven:3-jdk-11
-  entrypoint: mvn
+- name: 'maven:3-jdk-11'
+  entrypoint: 'mvn'
   args: ['test']
-- name: maven:3-jdk-11
-  entrypoint: mvn
+- name: 'maven:3-jdk-11'
+  entrypoint: 'mvn'
   args: ['package','-Dmaven.test.skip=true']
-- name: "gcr.io/cloud-builders/docker"
-  entrypoint: "bash"
-  args: ["-c", "docker login --username=probstl --password=$$PASSWORD"]
-  secretEnv: ["PASSWORD"]
-- name: "gcr.io/cloud-builders/docker"
-  args: ["build", "-t", "probstl/ausgaben-firebase:latest", "--build-arg=JAR_FILE=target/ausgaben-firebase-1.0.0-SNAPSHOT.jar", "."]
-images: "probstl/ausgaben-firebase:latest"
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker login --username=probstl --password=$$PASSWORD']
+  secretEnv: ['PASSWORD']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'probstl/ausgaben-firebase:latest', '--build-arg=JAR_FILE=target/ausgaben-firebase-1.0.0-SNAPSHOT.jar', '.']
+  images: 'probstl/ausgaben-firebase:latest'
 secrets:
-- kmsKeyName: "projects/probstl/locations/global/keyRings/dockerhub/cryptoKeys/login"
-secretEnv:
-  PASSWORD: "CiQAilvpY/xA+hD+NVYLpioOj9u8Osg1n9Q0gRZCU46X91WFxWoSPQC6WZsw080TGhKlUX+LZidmQM7Uo7iP5fs3WIgrlAI7LOQQzryhxrAypUrFNH7NK/tpGaUCj+DUqCwe34E="
+- kmsKeyName: 'projects/probstl/locations/global/keyRings/dockerhub/cryptoKeys/login'
+  secretEnv:
+    PASSWORD: 'CiQAilvpY/xA+hD+NVYLpioOj9u8Osg1n9Q0gRZCU46X91WFxWoSPQC6WZsw080TGhKlUX+LZidmQM7Uo7iP5fs3WIgrlAI7LOQQzryhxrAypUrFNH7NK/tpGaUCj+DUqCwe34E='
