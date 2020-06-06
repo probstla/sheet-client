@@ -14,6 +14,7 @@ import javax.mail.internet.MimeMessage;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ public class MailClientTest {
 		smtpServer.stop();
 	}
 
+	@Disabled
 	@Test
 	public void shouldSendMail() throws Exception {
 		String recipient = "john.doe@gmx.de";
