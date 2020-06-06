@@ -13,7 +13,13 @@ steps:
    args      : ['build', '-t', 'probstl/ausgaben-firebase:latest', '--build-arg=JAR_FILE=target/ausgaben-firebase-1.0.0-SNAPSHOT.jar', '.']
  - name      : 'gcr.io/cloud-builders/docker'
    args      : ['push', 'probstl/ausgaben-firebase']
+ - name      : 'gcr.io/cloud-builders/docker'
+   entrypoint: 'bash'
+   args      : ['-c', 'hostname -I']
+   env       :
+     - 'CLOUDSDK_COMPUTE_ZONE=europe-west3'
 images       : ['probstl/ausgaben-firebase:latest']
+logsBucket   : 'gs://probstl-cloudbuild-logs'
 secrets:
  - kmsKeyName: projects/probstl/locations/global/keyRings/dockerhub/cryptoKeys/login
    secretEnv:
