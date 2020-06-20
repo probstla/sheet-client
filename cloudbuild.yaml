@@ -19,7 +19,6 @@ steps:
    env       :
      - 'CLOUDSDK_COMPUTE_ZONE=europe-west3'
 images       : ['probstl/ausgaben-firebase:latest']
-logsBucket   : 'gs://probstl-cloudbuild-logs'
 secrets:
  - kmsKeyName: projects/probstl/locations/global/keyRings/dockerhub/cryptoKeys/login
    secretEnv:

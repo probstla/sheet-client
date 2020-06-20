@@ -177,7 +177,7 @@
                     Geschäfte</td>
                 </tr>
                 <tr style="font-size: 11pt; color: #486B00">
-                  <th width="150px" align="left"
+                  <th width="200px" align="left"
                     th:text="#{header.shop}"
                     style="border-bottom: solid #677077 2px; padding-bottom: 3px;">
                     Geschäft</th>
@@ -189,7 +189,7 @@
                 </tr>
                 <tr th:each="shopSum : ${sumShops}">
                   <td th:text="|${shopSum.shop} (${shopSum.count})|"
-                    style="padding: 2px 0 2px 0">Betz (4)</td>
+                    style="padding: 2px 0 2px 0">Schloss Neuschwanstein (1)</td>
                   <td style="font-family: monospace" align="right"
                     th:text="|${#numbers.formatDecimal(shopSum.sum, 1, 'POINT', 2, 'COMMA')} ${currency}|">9999,99
                     €</td>
