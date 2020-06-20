@@ -41,6 +41,11 @@
 	{
 		"name": "Urlaub",
 		"description": "Ausgaben während dem Urlaub",
-		"amount": 200.0
+		"amount": 0.0
+	},
+	{
+		"name": "Gesundheit",
+		"description": "Ausgaben für Gesundheit, also Medikamente und Zahnarzt",
+		"amount": 0.0
 	}
 ]
