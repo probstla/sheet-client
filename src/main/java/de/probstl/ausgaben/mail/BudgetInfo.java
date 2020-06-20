@@ -16,7 +16,11 @@ public class BudgetInfo {
 		m_Name = budget.getName();
 		m_Description = budget.getDescription();
 		m_Sum = sum == null ? Double.valueOf(0.0) : sum.doubleValue();
-		m_Remaining = Double.valueOf(budget.getAmount() - m_Sum.doubleValue());
+		if (budget.getAmount().intValue() <= 0) {
+			m_Remaining = Double.valueOf(0.0d);
+		} else {
+			m_Remaining = Double.valueOf(budget.getAmount() - m_Sum.doubleValue());
+		}
 	}
 
 	/**
