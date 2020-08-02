@@ -1,7 +1,7 @@
 package de.probstl.ausgaben.budget;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,17 +9,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import de.probstl.ausgaben.data.Expense;
 
 /**
  * Test for the budget service
  */
-@RunWith(SpringRunner.class)
+@SpringBootTest
 public class TestBudgetService {
 
 	/**
@@ -34,7 +32,7 @@ public class TestBudgetService {
 
 		Optional<String> budget = definition.stream().map(x -> x.getName())
 				.filter(x -> x.equalsIgnoreCase("Lebensmittel")).findFirst();
-		Assert.assertTrue(budget.isPresent());
+		assertTrue(budget.isPresent());
 	}
 
 	/**
