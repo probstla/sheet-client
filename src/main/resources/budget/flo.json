@@ -52,7 +52,7 @@
 		"name": "Geschenke",
 		"description": "Ausgaben für Geschenke",
 		"amount": 50.0,
-		"messageRegex": ".*Geschenk.*",
+		"messageRegex": ".*(Geschenk|#geschenke).*",
 		"shops": [
 			"Geschenk"
 		]
