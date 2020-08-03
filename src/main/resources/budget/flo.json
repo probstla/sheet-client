@@ -40,12 +40,21 @@
 	},
 	{
 		"name": "Urlaub",
-		"description": "Ausgaben während dem Urlaub",
+		"description": "Ausgaben für oder während dem Urlaub",
 		"amount": 0.0
 	},
 	{
 		"name": "Gesundheit",
 		"description": "Ausgaben für Gesundheit, also Medikamente und Zahnarzt",
 		"amount": 0.0
+	},
+	{
+		"name": "Geschenke",
+		"description": "Ausgaben für Geschenke",
+		"amount": 50.0,
+		"messageRegex": ".*Geschenk.*",
+		"shops": [
+			"Geschenk"
+		]
 	}
 ]
