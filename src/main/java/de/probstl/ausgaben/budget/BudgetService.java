@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,10 @@ public class BudgetService {
 
 	/** Logger */
 	private static Logger m_Log = LoggerFactory.getLogger(BudgetService.class);
+
+	/** Once read the budgets for each user are stored in this map */
+	private final Map<String, Collection<Budget>> m_Budgets = Collections
+			.synchronizedMap(new HashMap<String, Collection<Budget>>());
 
 	/**
 	 * Read the budget definition and try to match the given expenses.
@@ -78,7 +83,7 @@ public class BudgetService {
 		final Collection<Budget> budgets = readDefinition(auth.getName());
 		for (Budget budget : budgets) {
 			Collection<Expense> matching = findMatching(budget, Collections.singletonList(expense));
-			if (matching.isEmpty()) {
+			if (!matching.isEmpty()) {
 				return budget.getName();
 			}
 		}
@@ -167,16 +172,28 @@ public class BudgetService {
 	 */
 	Collection<Budget> readDefinition(String user) {
 
+		Collection<Budget> budgets = m_Budgets.get(user);
+		if (budgets != null) {
+			return budgets;
+		}
+
+		final InputStream stream = BudgetService.class.getResourceAsStream("/budget/" + user + ".json");
+		if (stream == null) {
+			return Collections.emptyList(); // No such file
+		}
+
+		final ObjectMapper mapper = new ObjectMapper();
 		try {
-			InputStream stream = BudgetService.class.getResourceAsStream("/budget/" + user + ".json");
-			if (stream == null) {
-				return Collections.emptyList();
-			}
-			ObjectMapper mapper = new ObjectMapper();
-			return mapper.readValue(stream, new TypeReference<List<Budget>>() {
+			budgets = mapper.readValue(stream, new TypeReference<List<Budget>>() {
 			});
 		} catch (IOException e) {
 			m_Log.error("error reading json for budget of user", e);
+		}
+
+		if (budgets != null) {
+			// Store the Budgets in the Map - if there was already a value return this value
+			Collection<Budget> oldValue = m_Budgets.putIfAbsent(user, budgets);
+			return oldValue != null ? oldValue : budgets;
 		}
 
 		return Collections.emptyList();

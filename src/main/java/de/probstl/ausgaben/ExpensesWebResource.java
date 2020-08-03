@@ -217,8 +217,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		}
 
 		// set file name and content type
-		String filename = MessageFormat.format("expenses_{0,number,00}-{1,number,0000}.csv", Integer.valueOf(month),
-				Integer.valueOf(year));
+		final String filename = MessageFormat.format("expenses_{0,number,00}-{1,number,0000}.csv",
+				Integer.valueOf(month), Integer.valueOf(year));
 
 		response.setContentType("text/csv; charset=UTF-8");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
