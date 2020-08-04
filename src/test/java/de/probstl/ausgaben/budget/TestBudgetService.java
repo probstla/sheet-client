@@ -104,4 +104,25 @@ public class TestBudgetService {
 		assertFalse(matching.isEmpty());
 		assertEquals(4.0, matching.stream().mapToDouble(x -> x.getAmountDouble()).sum());
 	}
+
+	/**
+	 * Testcase for issue #11 for leading budgets
+	 */
+	@Test
+	public void testLeadingBudget() {
+		Budget budget = new Budget();
+		budget.setName("Lebensmittel");
+
+		Collection<Expense> expenses = new ArrayList<Expense>();
+		Expense e1 = new Expense("0");
+		e1.setShop("EDEKA Rinner");
+		e1.setMessage("#lebensmittel Wasser, Cola");
+		e1.setAmountDouble(1.93);
+		expenses.add(e1);
+
+		final BudgetService service = new BudgetService();
+		Collection<Expense> matching = service.findMatching(budget, expenses);
+		assertFalse(matching.isEmpty());
+		assertEquals(1.93, matching.stream().mapToDouble(x -> x.getAmountDouble()).sum());
+	}
 }
