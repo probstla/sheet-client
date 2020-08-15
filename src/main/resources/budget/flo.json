@@ -56,5 +56,16 @@
 		"shops": [
 			"Geschenk"
 		]
+	},
+	{
+		"name": "sobu2020",
+		"description": "Ausgaben während dem Sommer BU 2020 in Zuffenhausen",
+		"amount": 240.0,
+		"shops": [
+			"Porsche",
+			"Sausalitos",
+			"Enchilada",
+			"Franca e Franco"
+		]
 	}
 ]
