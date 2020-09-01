@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -50,9 +51,23 @@ public class BudgetService {
 		final Map<Budget, Set<Expense>> toReturn = new TreeMap<Budget, Set<Expense>>();
 
 		final Collection<Budget> budgets = readDefinition(auth.getName());
+		final Optional<Budget> fallback = findFallback(budgets);
+
+		final Set<Expense> remaining = new HashSet<Expense>();
+		remaining.addAll(expenses);
+
 		for (Budget budget : budgets) {
 			Set<Expense> sum = findMatching(budget, expenses);
 			toReturn.put(budget, sum);
+
+			// Remove the found expenses from the list
+			remaining.removeAll(sum);
+		}
+
+		if (fallback.isPresent()) {
+			// these are all expenses that does not have any budget - they match the
+			// fallback budget
+			toReturn.put(fallback.get(), remaining);
 		}
 
 		return toReturn;
@@ -81,12 +96,19 @@ public class BudgetService {
 	 */
 	public String findBudget(Authentication auth, Expense expense) {
 		final Collection<Budget> budgets = readDefinition(auth.getName());
+		final Optional<Budget> fallback = findFallback(budgets);
+
 		for (Budget budget : budgets) {
 			Collection<Expense> matching = findMatching(budget, Collections.singletonList(expense));
 			if (!matching.isEmpty()) {
 				return budget.getName();
 			}
 		}
+
+		if (fallback.isPresent()) {
+			return fallback.get().getName();
+		}
+
 		return null;
 	}
 
@@ -162,6 +184,20 @@ public class BudgetService {
 		}
 
 		return toReturn;
+	}
+
+	/**
+	 * Find a fallback Budget of the given Budget List
+	 * 
+	 * @param budgetList The list of budgets to search
+	 * @return A optional with the given fallback or an empty optional
+	 */
+	private Optional<Budget> findFallback(Collection<Budget> budgetList) {
+		if (budgetList == null) {
+			return Optional.empty();
+		}
+
+		return budgetList.stream().filter(Budget::isFallback).findFirst();
 	}
 
 	/**

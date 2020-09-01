@@ -33,5 +33,11 @@
 		"name": "Eigene Anschaffungen",
 		"description": "Alle eigenen Ausgaben die in keine andere Kategorie fallen",
 		"amount": 200.0
+	},
+	{
+		"name": "Offen",
+		"description": "Ausgaben auf die kein anderes Budget zutrifft",
+		"amount": 0.0,
+		"fallback": true
 	}
 ]

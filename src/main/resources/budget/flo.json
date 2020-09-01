@@ -58,7 +58,7 @@
 		]
 	},
 	{
-		"name": "sobu2020",
+		"name": "SoBu2020",
 		"description": "Ausgaben während dem Sommer BU 2020 in Zuffenhausen",
 		"amount": 240.0,
 		"shops": [
@@ -67,5 +67,11 @@
 			"Enchilada",
 			"Franca e Franco"
 		]
+	},
+	{
+		"name": "Offen",
+		"description": "Ausgaben auf die kein anderes Budget zutrifft",
+		"amount": 0.0,
+		"fallback": true
 	}
 ]

@@ -20,6 +20,9 @@ public class Budget implements Comparable<Budget> {
 	/** The shops when the regular expression does not match */
 	private String[] m_Shops;
 
+	/** The budget is a fallback if no other budget is found for an expense */
+	private boolean m_Fallback;
+
 	/**
 	 * Default constructor
 	 */
@@ -140,5 +143,19 @@ public class Budget implements Comparable<Budget> {
 	 */
 	public void setShops(String[] shops) {
 		this.m_Shops = shops;
+	}
+
+	/**
+	 * @return the fallback
+	 */
+	public boolean isFallback() {
+		return m_Fallback;
+	}
+
+	/**
+	 * @param fallback the fallback to set
+	 */
+	public void setFallback(boolean fallback) {
+		this.m_Fallback = fallback;
 	}
 }

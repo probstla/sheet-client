@@ -324,7 +324,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		}
 
 		final List<BudgetInfo> budgetInfo = budgetSum.entrySet().stream().filter(x -> x.getValue().doubleValue() > 0)
-				.map(x -> new BudgetInfo(x.getKey(), x.getValue())).collect(Collectors.toList());
+				.map(x -> new BudgetInfo(x.getKey(), x.getValue())).sorted().collect(Collectors.toList());
 		model.addAttribute("budgets", budgetInfo);
 
 		final MailInfo mailInfo = new MailInfo(request.getBeginDate(), request.getEndDate());

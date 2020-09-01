@@ -2,14 +2,21 @@ package de.probstl.ausgaben.mail;
 
 import de.probstl.ausgaben.budget.Budget;
 
-public class BudgetInfo {
+/**
+ * Class for rendering a budget
+ */
+public class BudgetInfo implements Comparable<BudgetInfo> {
 
+	/** Name of the Budget */
 	private final String m_Name;
 
+	/** The description of the budget */
 	private final String m_Description;
 
+	/** Sum of all expenses matching the budget */
 	private final Double m_Sum;
 
+	/** Remaining budget */
 	private final Double m_Remaining;
 
 	public BudgetInfo(Budget budget, Double sum) {
@@ -21,6 +28,14 @@ public class BudgetInfo {
 		} else {
 			m_Remaining = Double.valueOf(budget.getAmount() - m_Sum.doubleValue());
 		}
+	}
+
+	/**
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(BudgetInfo o) {
+		return getName().compareTo(o.getName());
 	}
 
 	/**
