@@ -73,5 +73,10 @@
 		"description": "Ausgaben auf die kein anderes Budget zutrifft",
 		"amount": 0.0,
 		"fallback": true
+	},
+	{
+		"name": "berlin2020",
+		"description": "Ausgaben im Urlaub Berlin 2020",
+		"amount": 0.0
 	}
 ]
