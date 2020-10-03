@@ -4,7 +4,7 @@ steps:
    args      : ['test']
  - name      : 'maven:3-jdk-11'
    entrypoint: 'mvn'
-   args      : ['release-prepare','release-perform']
+   args      : ['release:prepare','release:perform']
  - name      : 'gcr.io/cloud-builders/docker'
    entrypoint: 'bash'
    args      : ['-c', 'docker login --username=probstl --password=$$PASSWORD']
