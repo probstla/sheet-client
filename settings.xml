@@ -7,7 +7,7 @@
     <server>
       <id>github</id>
       <username>fprobst</username>
-      <password>${env.MAVEN_REPO_PASSWORD}</password>
+      <password>{5SbGSb3Q1ZwH8mYAAAy+hQ1wWyy9iyns+7MUHgt3K4xJYWHQsa9bYs97e+AU2Vn/cDZFOIqRIzHydYQn7VwcBg==}</password>
     </server>
   </servers>
 </settings>
