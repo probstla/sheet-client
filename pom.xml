@@ -1,99 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.10.RELEASE</version>
-    <relativePath /> <!-- lookup parent from repository -->
-  </parent>
-  <groupId>de.probstl</groupId>
-  <artifactId>ausgaben-firebase</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
-  <name>ausgaben-firebase</name>
-  <description>JSON Webservice für die Weiterleitung nach Google Firebase</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.2.10.RELEASE</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>de.probstl</groupId>
+	<artifactId>ausgaben-firebase</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>ausgaben-firebase</name>
+	<description>JSON Webservice für die Weiterleitung nach Google Firebase</description>
 
-  <properties>
-    <google-cloud-firestore.version>1.35.2</google-cloud-firestore.version>
-    <java.version>1.8</java.version>
-    <project.scm.id>github</project.scm.id>
-  </properties>
+	<properties>
+        <google-cloud-firestore.version>1.35.2</google-cloud-firestore.version>
+		<java.version>1.8</java.version>
+        <project.scm.id>github</project.scm.id>
+	</properties>
 
-  <scm>
-    <connection>scm:git:https://github.com/probstla/sheet-client.git</connection>
-    <developerConnection>scm:git:https://github.com/probstla/sheet-client.git</developerConnection>
-    <url>https://github.com/probstla/sheet-client</url>
-    <tag>HEAD</tag>
-  </scm>
+    <scm>
+        <connection>scm:git:https://github.com/probstla/sheet-client.git</connection>
+        <developerConnection>scm:git:https://github.com/probstla/sheet-client.git</developerConnection>
+        <url>https://github.com/probstla/sheet-client</url>
+    </scm>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-mail</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-thymeleaf</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.cloud</groupId>
-      <artifactId>google-cloud-firestore</artifactId>
-      <version>${google-cloud-firestore.version}</version>
-    </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>com.google.cloud</groupId>
+          <artifactId>google-cloud-firestore</artifactId>
+          <version>${google-cloud-firestore.version}</version>
+        </dependency>
+        
+        <!-- Test dependencies -->
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-test</artifactId>
+          <scope>test</scope>
+          <exclusions>
+              <exclusion>
+                  <groupId>junit</groupId>
+                  <artifactId>junit</artifactId>
+              </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+	</dependencies>
 
-    <!-- Test dependencies -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <tagNameFormat>v{$project.version}</tagNameFormat>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-  <distributionManagement>
-    <repository>
-      <id>github</id>
-      <name>GitHub</name>
-      <url>https://maven.pkg.github.com/probstla/sheet-client</url>
-    </repository>
-  </distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub</name>
+            <url>https://maven.pkg.github.com/probstla/sheet-client</url>  
+        </repository>
+    </distributionManagement>
 
 </project>
