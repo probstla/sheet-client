@@ -18,7 +18,12 @@
 	<properties>
         <google-cloud-firestore.version>1.35.2</google-cloud-firestore.version>
 		<java.version>1.8</java.version>
+        <project.scm.id>github</project.scm.id>
 	</properties>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/probstla/sheet-client.git</developerConnection>
+    </scm>
 
 	<dependencies>
 		<dependency>
@@ -74,5 +79,13 @@
 			</plugin>
 		</plugins>
 	</build>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub</name>
+            <url>https://maven.pkg.github.com/probstla/sheet-client</url>  
+        </repository>
+    </distributionManagement>
 
 </project>
