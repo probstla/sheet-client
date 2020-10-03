@@ -15,7 +15,7 @@ public class ExpensesApplication {
 	/**
 	 * Main method start the application
 	 * 
-	 * @param args
+	 * @param args Application arguments
 	 */
 	public static void main(String[] args) {
 		SpringApplication.run(ExpensesApplication.class, args);

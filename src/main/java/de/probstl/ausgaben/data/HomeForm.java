@@ -9,16 +9,16 @@ public class HomeForm {
 	private String m_SelectedMonth;
 
 	/**
-	 * @return the m_SelectedMonth
+	 * @return the selectedMonth
 	 */
 	public String getSelectedMonth() {
 		return m_SelectedMonth;
 	}
 
 	/**
-	 * @param m_SelectedMonth the m_SelectedMonth to set
+	 * @param selectedMonth The selected month
 	 */
 	public void setSelectedMonth(String selectedMonth) {
-		this.m_SelectedMonth = selectedMonth;
+		m_SelectedMonth = selectedMonth;
 	}
 }

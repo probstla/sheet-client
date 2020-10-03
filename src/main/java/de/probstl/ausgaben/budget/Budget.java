@@ -36,6 +36,7 @@ public class Budget implements Comparable<Budget> {
 	 * @param description  description
 	 * @param amount       amount per month
 	 * @param messageRegex regular expression applied to the message
+	 * @param shops        shops that match the budget
 	 */
 	public Budget(String name, String description, Double amount, String messageRegex, String[] shops) {
 		m_Name = name;
