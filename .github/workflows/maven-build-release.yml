@@ -32,10 +32,12 @@ jobs:
         run: mvn -B release:prepare release:perform --file pom.xml
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Set env
+        run: echo "MAVEN_VERSION=$(git describe --abbrev=0 | cut -c 2-)" >> $GITHUB_ENV
       - name: Push to Docker Hub
-        uses: docker/build-push-action@v1
+        uses: docker/build-push-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: probstl/ausgaben-firebase
+          repository: probstl/ausgaben-firebase:${{ MAVEN_VERSION }}
           tag_with_ref: true
