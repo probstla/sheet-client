@@ -28,14 +28,15 @@ public class Budget implements Comparable<Budget> {
 	 */
 	public Budget() {
 	}
-
+	
 	/**
-	 * Constructor providing the values
+	 * Constructor providing all values
 	 * 
-	 * @param name         short name of the budget
-	 * @param description  description
-	 * @param amount       amount per month
-	 * @param messageRegex regular expression applied to the message
+	 * @param name			Short name of the budget
+	 * @param description	Description of the budget
+	 * @param amount		Available amount per month	
+	 * @param messageRegex	Regular expression applied to the message 
+	 * @param shops			Shops that are associated with this budget
 	 */
 	public Budget(String name, String description, Double amount, String messageRegex, String[] shops) {
 		m_Name = name;

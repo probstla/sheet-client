@@ -76,11 +76,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Takes the input from the landing page and load the selected data
 	 * 
-	 * @param homeForm The form with the selected month if <b>gotoMonth</b> has been
-	 *                 pressed
-	 * @param req      The request for getting the pressed submit button
-	 * @param model    The model for calling other methods
-	 * @param auth     The model for calling other methods
+	 * @param homeForm		The form with the selected month if <b>gotoMonth</b> has been
+	 *                 		pressed
+	 * @param req			The request for getting the pressed submit button
+	 * @param requestLocale	The locale from the http request
 	 * @return Template to show
 	 */
 	@PostMapping("/overview")
@@ -180,9 +179,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Shows the expenses by month/year
 	 * 
-	 * @param month The month
-	 * @param year  The year
-	 * @param model Model for web view
+	 * @param month	The month
+	 * @param year	The year
+	 * @param model	Model for web view
+	 * @param auth	Auth for choosing the collection
 	 * @return Template to show
 	 */
 	@GetMapping("/view/{month}/{year}")
@@ -196,10 +196,11 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Allows the export of a month into a CSV file
 	 * 
-	 * @param month    The month that should be exported
-	 * @param year     The year
-	 * @param response The response to write the CSV data
-	 * @param auth     Auth for choosing the collection
+	 * @param month			The month that should be exported
+	 * @param year			The year
+	 * @param response		The response to write the CSV data
+	 * @param auth			Auth for choosing the collection
+	 * @param requestLocale The locale of the logged in user
 	 * @throws Exception
 	 */
 	@GetMapping("/export/{month}/{year}")
@@ -341,7 +342,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Returns the data of the current week
 	 * 
-	 * @param model Model for web view
+	 * @param model	Model for web view
+	 * @param auth	Authentication for choosing the collection
 	 * @return Template to show
 	 */
 	@GetMapping("/view/currentWeek")
