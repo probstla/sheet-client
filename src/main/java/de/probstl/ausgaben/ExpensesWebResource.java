@@ -201,7 +201,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param response		The response to write the CSV data
 	 * @param auth			Auth for choosing the collection
 	 * @param requestLocale The locale of the logged in user
-	 * @throws Exception
+	 * @throws Exception Thrown on error
 	 */
 	@GetMapping("/export/{month}/{year}")
 	public void exportMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
