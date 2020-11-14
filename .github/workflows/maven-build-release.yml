@@ -39,5 +39,5 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: probstl/ausgaben-firebase:${{ MAVEN_VERSION }}
+          repository: probstl/ausgaben-firebase:${{ env.MAVEN_VERSION }}
           tag_with_ref: true
