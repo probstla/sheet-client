@@ -207,7 +207,7 @@ public class Expense {
 	}
 
 	/**
-	 * @param m_Payment the payment to set - e.g. cash or credit card
+	 * @param payment the payment to set - e.g. cash or credit card
 	 */
 	public void setPayment(String payment) {
 		m_Payment = payment;
