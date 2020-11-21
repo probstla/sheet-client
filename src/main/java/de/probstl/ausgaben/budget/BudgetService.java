@@ -48,12 +48,12 @@ public class BudgetService {
 	 */
 	public Map<Budget, Set<Expense>> createFromExpenses(Authentication auth, Collection<Expense> expenses) {
 
-		final Map<Budget, Set<Expense>> toReturn = new TreeMap<Budget, Set<Expense>>();
+		final Map<Budget, Set<Expense>> toReturn = new TreeMap<>();
 
 		final Collection<Budget> budgets = readDefinition(auth.getName());
 		final Optional<Budget> fallback = findFallback(budgets);
 
-		final Set<Expense> remaining = new HashSet<Expense>();
+		final Set<Expense> remaining = new HashSet<>();
 		remaining.addAll(expenses);
 
 		for (Budget budget : budgets) {
@@ -81,7 +81,7 @@ public class BudgetService {
 	 * @return A Map with the budget and the corresponding amount
 	 */
 	public Map<Budget, Set<Expense>> createFromCities(Authentication auth, Collection<CityInfo> cities) {
-		final Collection<Expense> allCities = new ArrayList<Expense>();
+		final Collection<Expense> allCities = new ArrayList<>();
 		cities.stream().forEach(x -> allCities.addAll(x.getExpenses()));
 		return createFromExpenses(auth, allCities);
 	}
@@ -97,6 +97,13 @@ public class BudgetService {
 	public String findBudget(Authentication auth, Expense expense) {
 		final Collection<Budget> budgets = readDefinition(auth.getName());
 		final Optional<Budget> fallback = findFallback(budgets);
+
+		if (budgets != null && expense.getBudget() != null) {
+			Optional<Budget> foundBudget = budgets.stream().filter(x -> x.getName().equalsIgnoreCase(expense.getBudget())).findFirst();
+			if(foundBudget.isPresent()) {
+				return foundBudget.get().getName();
+			}
+		}
 
 		for (Budget budget : budgets) {
 			Collection<Expense> matching = findMatching(budget, Collections.singletonList(expense));
@@ -125,7 +132,7 @@ public class BudgetService {
 	 */
 	Set<Expense> findMatching(Budget budget, Collection<Expense> expenses) {
 
-		final Set<Expense> toReturn = new HashSet<Expense>();
+		final Set<Expense> toReturn = new HashSet<>();
 
 		String regex = budget.getMessageRegex();
 		if (regex == null || regex.trim().isEmpty()) {
@@ -140,16 +147,19 @@ public class BudgetService {
 			pattern = Pattern.compile(regex);
 			byRegex = findByRegex(pattern, expenses);
 		} catch (PatternSyntaxException e) {
-			m_Log.error("invalid pattern: " + regex, e);
+			m_Log.error(String.format("invalid pattern: %s", regex), e);
 		}
 
 		if (budget.getShops() != null && budget.getShops().length > 0) {
-			Set<String> shopsLowerCase = Arrays.asList(budget.getShops()).stream().map(x -> x.toLowerCase())
+			Set<String> shopsLowerCase = Arrays.stream(budget.getShops()).map(String::toLowerCase)
 					.collect(Collectors.toSet());
 			byShop = expenses.stream().filter(x -> shopsLowerCase.contains(x.getShop().toLowerCase()))
 					.collect(Collectors.toList());
 		}
 
+		// Add the expenses with a direct budget match to the returning set
+		toReturn.addAll(expenses.stream().filter(x -> budget.getName().equals(x.getBudget())).collect(Collectors.toSet()));
+		
 		// Add all unique expenses to the result
 		toReturn.addAll(byRegex);
 		toReturn.addAll(byShop);
@@ -165,7 +175,7 @@ public class BudgetService {
 	 */
 	private Collection<Expense> findByRegex(Pattern pattern, Collection<Expense> expenses) {
 
-		final Collection<Expense> toReturn = new ArrayList<Expense>();
+		final Collection<Expense> toReturn = new ArrayList<>();
 		for (Expense expense : expenses) {
 			if (expense.getMessage() == null) {
 				continue;
@@ -177,8 +187,9 @@ public class BudgetService {
 				if (matcher.groupCount() > 0) {
 					token = matcher.group(1);
 				}
+				String regex = pattern.pattern();
 				m_Log.info("expense {} with message '{}' matches regular expression '{}' with token: '{}'",
-						expense.getId(), expense.getMessage(), pattern.pattern(), token);
+						expense.getId(), expense.getMessage(), regex, token);
 				toReturn.add(expense);
 			}
 		}
