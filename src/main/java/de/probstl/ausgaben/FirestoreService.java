@@ -149,7 +149,7 @@ public class FirestoreService {
 		data.put(FIELD_CITY, expense.getCity());
 		data.put(FIELD_PAYMENT, expense.getPayment());
 
-		if(expense.getBudget() != null && expense.getBudget().isEmpty()) {
+		if (expense.getBudget() != null && expense.getBudget().isEmpty()) {
 			data.put(FIELD_BUDGET, expense.getBudget()); // new field with version 1.2.0
 		}
 
@@ -174,6 +174,46 @@ public class FirestoreService {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Load an expense with an specific Id from the collection
+	 * 
+	 * @param id         The Id of the expense
+	 * @param collection The collection from which the expense is loaded
+	 * @return An expense or null if the id was not found
+	 */
+	public Expense getExpense(String id, String collection) {
+		final Instant start = Instant.now();
+		Duration queryTime = null;
+
+		LOG.info("Find expense with id {} in collection {}", id, collection);
+
+		DocumentSnapshot result = null;
+		try {
+			ApiFuture<DocumentSnapshot> future = getFirestoreService().collection(collection).document(id).get();
+
+			try {
+				result = future.get();
+			} catch (InterruptedException e) {
+				LOG.warn("waiting for result interrupted!");
+				Thread.currentThread().interrupt();
+			} catch (ExecutionException e) {
+				LOG.error("could not retrieve result from firestore!", e.getCause());
+			}
+		} finally {
+			queryTime = Duration.between(start, Instant.now());
+		}
+
+		if (result == null || !result.exists()) {
+			LOG.warn("Expense with id {} not found!", id);
+			return null;
+		}
+
+		LOG.info("Expense with id {} loaded in {} ms. Snapshot timestamp: {}", id, Long.valueOf(queryTime.toMillis()),
+				result.getReadTime());
+
+		return createFromDocument(result);
 	}
 
 	/**
@@ -272,7 +312,8 @@ public class FirestoreService {
 
 		QuerySnapshot queryResult = null;
 		try {
-			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select(FIELD_AMOUNT, FIELD_TIMESTAMP)
+			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection)
+					.select(FIELD_AMOUNT, FIELD_TIMESTAMP)
 					.whereGreaterThanOrEqualTo(FIELD_TIMESTAMP, request.getBeginDate())
 					.whereLessThanOrEqualTo(FIELD_TIMESTAMP, request.getEndDate()).orderBy(FIELD_TIMESTAMP).get();
 

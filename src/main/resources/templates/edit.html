@@ -47,26 +47,26 @@
       Ausgabe bearbeiten</span>
 
     <div style="justify-content: center; margin: 15px;">
-      <form action="#" th:action="@{/save}">
+      <form action="#" th:action="@{/save/{id}(id=${expense.id})}">
         <label for="timestamp">Datum</label>
-        <input id="timestamp" type="text" value="24.01.2021 19:21:12">
+        <input id="timestamp" type="text" value="24.01.2021 19:21:12" th:value="${#dates.format(expense.timestamp, 'dd.MM.yyyy HH:mm')}">
 
         <label for="shop">Geschäft</label>
-        <input id="shop" type="text" value="Betz" />
+        <input id="shop" type="text" value="Betz" th:value="${expense.shop}"/>
 
         <label for="amount">Betrag</label>
-        <input id="amount" type="text" value="2,32" />
+        <input id="amount" type="text" value="2,32" th:value="${#numbers.formatDecimal(expense.amountDouble, 1, 'POINT', 2, 'COMMA')}" />
 
         <label for="cash" style="height: 32px;">Bargeld</label>
         <input id="cash" type="checkbox" checked="true" />
 
         <label for="description">Beschreibung</label>
-        <input id="description" type="text" value="Feierabendtüte #bäcker">
+        <input id="description" type="text" value="Feierabendtüte #bäcker" th:value="${expense.message}">
 
         <div style="border-top: solid #677077 2px; padding: 15px; grid-column: 1 / 4">
-          <button type="submit">Speichern</button>
-          <button type="submit">Löschen</button>
-          <button type="submit">Abbrechen</button>
+          <button type="submit" name="save">Speichern</button>
+          <button type="submit" name="delete">Löschen</button>
+          <button type="submit" name="cancel">Abbrechen</button>
         </div>
 
       </form>

@@ -76,10 +76,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Takes the input from the landing page and load the selected data
 	 * 
-	 * @param homeForm		The form with the selected month if <b>gotoMonth</b> has been
-	 *                 		pressed
-	 * @param req			The request for getting the pressed submit button
-	 * @param requestLocale	The locale from the http request
+	 * @param homeForm      The form with the selected month if <b>gotoMonth</b> has
+	 *                      been pressed
+	 * @param req           The request for getting the pressed submit button
+	 * @param requestLocale The locale from the http request
 	 * @return Template to show
 	 */
 	@PostMapping("/overview")
@@ -90,7 +90,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			return "redirect:/view/currentWeek";
 		}
 
-		LOG.info("dispatch to month: " + homeForm.getSelectedMonth());
+		LOG.info("dispatch to month {}", homeForm.getSelectedMonth());
 
 		LocalDate localDate = null;
 		try {
@@ -122,7 +122,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	@GetMapping("/home")
 	public String showHome(Model model, Authentication auth, Locale requestLocale) {
 
-		final Collection<String> monthList = new ArrayList<String>();
+		final Collection<String> monthList = new ArrayList<>();
 
 		// Here's when we started to collect the expenses
 		LocalDate startDate = LocalDate.of(2020, Month.APRIL, 1);
@@ -141,7 +141,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		HomeForm homeForm = new HomeForm();
 		homeForm.setSelectedMonth(month);
 
-		List<Double> weeksList = new ArrayList<Double>();
+		List<Double> weeksList = new ArrayList<>();
 		double currentMonth = 0.0;
 		double lastMonth = 0.0;
 		double percentOfLastMonth = 0.0;
@@ -179,10 +179,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Shows the expenses by month/year
 	 * 
-	 * @param month	The month
-	 * @param year	The year
-	 * @param model	Model for web view
-	 * @param auth	Auth for choosing the collection
+	 * @param month The month
+	 * @param year  The year
+	 * @param model Model for web view
+	 * @param auth  Auth for choosing the collection
 	 * @return Template to show
 	 */
 	@GetMapping("/view/{month}/{year}")
@@ -194,12 +194,58 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	}
 
 	/**
+	 * Edit the expense with the given id and forward to the edit page
+	 * 
+	 * @param id    The id of the expense that will be modified
+	 * @param auth  Auth for choosing the collection
+	 * @param model The model to store the loaded expense
+	 * @return Template to show
+	 */
+	@GetMapping("/edit/{id}")
+	public String editExpense(@PathVariable(name = "id") String id, Model model, Authentication auth) {
+		// http://localhost:8080/money/edit/cOhvwl5ktsrAzAqoRi1D
+		String collection = m_FirestoreService.extractCollection(auth);
+		Expense expense = m_FirestoreService.getExpense(id, collection);
+		if (expense != null) {
+			model.addAttribute("expense", expense);
+			return "edit";
+		}
+
+		return "home";
+	}
+
+	/**
+	 * Save the data from the form
+	 * 
+	 * @param id            The Id that was modified
+	 * @param req           The HTTP request
+	 * @param requestLocale The locale from the browser
+	 * @return Template to show
+	 */
+	@PostMapping("/save/{id}")
+	public String saveExpense(@PathVariable(name = "id") String id, final HttpServletRequest req,
+			Locale requestLocale) {
+
+		if (req.getParameter("save") != null) {
+			// return "redirect:/view/" + localDate.getMonthValue() + "/" +
+			// localDate.getYear();
+			LOG.info("Saving expense with id {}", id);
+		} else if (req.getParameter("delete") != null) {
+			// return "redirect:/export/" + localDate.getMonthValue() + "/" +
+			// localDate.getYear();
+			LOG.info("Deleting expense with id {}", id);
+		}
+
+		return "home";
+	}
+
+	/**
 	 * Allows the export of a month into a CSV file
 	 * 
-	 * @param month			The month that should be exported
-	 * @param year			The year
-	 * @param response		The response to write the CSV data
-	 * @param auth			Auth for choosing the collection
+	 * @param month         The month that should be exported
+	 * @param year          The year
+	 * @param response      The response to write the CSV data
+	 * @param auth          Auth for choosing the collection
 	 * @param requestLocale The locale of the logged in user
 	 * @throws Exception Thrown on error
 	 */
@@ -342,8 +388,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Returns the data of the current week
 	 * 
-	 * @param model	Model for web view
-	 * @param auth	Authentication for choosing the collection
+	 * @param model Model for web view
+	 * @param auth  Authentication for choosing the collection
 	 * @return Template to show
 	 */
 	@GetMapping("/view/currentWeek")
