@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <link rel="shortcut icon" th:href="@{/favicon.ico}">
+  <link rel="icon" type="image/png" th:href="@{/favicon.png}" sizes="96x96">
+  <link rel="apple-touch-icon" sizes="180x180" th:href="@{/apple-touch-icon.png}">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Edit receipt</title>
+  <style>
+    form {
+      display: grid;
+      grid-template-columns: 100px 1fr 1fr;
+      grid-gap: 16px;
+    }
+
+    label {
+      font: 11pt sans-serif;
+      font-weight: bold;
+      color: #486B00;
+      display: flex;
+      align-items: center;
+      width: 100px;
+      padding-right: 24px;
+      grid-column: 1 / 2;
+    }
+
+    input {
+      font-size: 14pt;
+      font-family: 'Courier New', Courier, monospace;
+      grid-column: 2 / 4;
+    }
+
+    button {
+      font: 11pt sans-serif;
+      width: 150px;
+      height: 32px;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="width: 750px; margin: 0 auto; margin-top: 15px; border: 1px solid #252839;">
+    <span th:text="#{headerEdit}"
+      style="display: flex; justify-content: center; align-items: center; background-color: #2E4600; color: #FFFFFF; font: small-caps bold 32pt sans-serif; height: 135px;">
+      Ausgabe bearbeiten</span>
+
+    <div style="justify-content: center; margin: 15px;">
+      <form action="#" th:action="@{/save}">
+        <label for="timestamp">Datum</label>
+        <input id="timestamp" type="text" value="24.01.2021 19:21:12">
+
+        <label for="shop">Geschäft</label>
+        <input id="shop" type="text" value="Betz" />
+
+        <label for="amount">Betrag</label>
+        <input id="amount" type="text" value="2,32" />
+
+        <label for="cash" style="height: 32px;">Bargeld</label>
+        <input id="cash" type="checkbox" checked="true" />
+
+        <label for="description">Beschreibung</label>
+        <input id="description" type="text" value="Feierabendtüte #bäcker">
+
+        <div style="border-top: solid #677077 2px; padding: 15px; grid-column: 1 / 4">
+          <button type="submit">Speichern</button>
+          <button type="submit">Löschen</button>
+          <button type="submit">Abbrechen</button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+
+</body>
+
+</html>
