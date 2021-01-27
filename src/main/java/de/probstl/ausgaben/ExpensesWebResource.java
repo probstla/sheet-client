@@ -5,6 +5,7 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -13,6 +14,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +42,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import de.probstl.ausgaben.budget.Budget;
 import de.probstl.ausgaben.budget.BudgetService;
+import de.probstl.ausgaben.data.EditForm;
 import de.probstl.ausgaben.data.Expense;
 import de.probstl.ausgaben.data.ExpensesRequest;
 import de.probstl.ausgaben.data.HomeForm;
@@ -207,7 +210,21 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		String collection = m_FirestoreService.extractCollection(auth);
 		Expense expense = m_FirestoreService.getExpense(id, collection);
 		if (expense != null) {
-			model.addAttribute("expense", expense);
+			EditForm form = new EditForm();
+			form.setCash(expense.isCash());
+			form.setCity(expense.getCity());
+			form.setDescription(expense.getMessage());
+			form.setExpenseId(expense.getId());
+			form.setShop(expense.getShop());
+			
+			NumberFormat format = NumberFormat.getNumberInstance(Locale.GERMAN);
+			form.setAmountStr(format.format(expense.getAmountDouble().doubleValue()));
+
+			Date expenseTimestamp = expense.getTimestamp();
+			ZonedDateTime dateTime = ZonedDateTime.ofInstant(expenseTimestamp.toInstant(), ZoneId.of("Europe/Berlin"));
+			form.setTimestampStr(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").format(dateTime));
+
+			model.addAttribute("editForm", form);
 			return "edit";
 		}
 
@@ -223,20 +240,31 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Template to show
 	 */
 	@PostMapping("/save/{id}")
-	public String saveExpense(@PathVariable(name = "id") String id, final HttpServletRequest req,
+	public String saveExpense(@PathVariable(name = "id") String id, EditForm form, final HttpServletRequest req,
 			Locale requestLocale) {
 
 		if (req.getParameter("save") != null) {
-			// return "redirect:/view/" + localDate.getMonthValue() + "/" +
-			// localDate.getYear();
-			LOG.info("Saving expense with id {}", id);
+
+			Expense expense = new Expense(id);
+			expense.setAmountDouble(form.getAmountDouble());
+			expense.setCity(form.getCity());
+			expense.setMessage(form.getDescription());
+			expense.setPayment(form.isCash() ? "cash" : "card");
+			expense.setShop(form.getShop());
+
+			LocalDateTime dateTime = LocalDateTime.parse(form.getTimestampStr(), DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
+			ZonedDateTime zDateTime = ZonedDateTime.of(dateTime, ZoneId.of("Europe/Berlin"));
+			expense.setTimestamp(Date.from(zDateTime.toInstant()));
+			
+			LOG.info("Saving expense with id {} and values {}", id, form);
+			return "redirect:/view/" + dateTime.getMonthValue() + "/" + dateTime.getYear();
 		} else if (req.getParameter("delete") != null) {
 			// return "redirect:/export/" + localDate.getMonthValue() + "/" +
 			// localDate.getYear();
 			LOG.info("Deleting expense with id {}", id);
 		}
 
-		return "home";
+		return "redirect:/home";
 	}
 
 	/**

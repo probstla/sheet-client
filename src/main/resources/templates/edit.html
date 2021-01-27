@@ -47,21 +47,24 @@
       Ausgabe bearbeiten</span>
 
     <div style="justify-content: center; margin: 15px;">
-      <form action="#" th:action="@{/save/{id}(id=${expense.id})}">
+      <form method="POST" action="#" th:action="@{/save/{id}(id=${editForm.expenseId})}">
         <label for="timestamp">Datum</label>
-        <input id="timestamp" type="text" value="24.01.2021 19:21:12" th:value="${#dates.format(expense.timestamp, 'dd.MM.yyyy HH:mm')}">
+        <input id="timestamp" type="text" value="24.01.2021 19:21:12" th:field="*{editForm.timestampStr}">
 
         <label for="shop">Geschäft</label>
-        <input id="shop" type="text" value="Betz" th:value="${expense.shop}"/>
+        <input id="shop" type="text" value="Betz" th:field="*{editForm.shop}"/>
+
+        <label for="city">Stadt</label>
+        <input id="city" type="text" value="Landshut" th:field="*{editForm.city}" />
 
         <label for="amount">Betrag</label>
-        <input id="amount" type="text" value="2,32" th:value="${#numbers.formatDecimal(expense.amountDouble, 1, 'POINT', 2, 'COMMA')}" />
+        <input id="amount" type="text" value="2,32" th:field="*{editForm.amountStr}" />
 
         <label for="cash" style="height: 32px;">Bargeld</label>
-        <input id="cash" type="checkbox" checked="true" />
+        <input id="cash" type="checkbox" th:field="*{editForm.cash}"/>
 
         <label for="description">Beschreibung</label>
-        <input id="description" type="text" value="Feierabendtüte #bäcker" th:value="${expense.message}">
+        <input id="description" type="text" value="Feierabendtüte #bäcker" th:field="*{editForm.description}" >
 
         <div style="border-top: solid #677077 2px; padding: 15px; grid-column: 1 / 4">
           <button type="submit" name="save">Speichern</button>

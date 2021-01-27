@@ -48,6 +48,11 @@
           <artifactId>google-cloud-firestore</artifactId>
           <version>${google-cloud-firestore.version}</version>
         </dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.16</version>
+		</dependency>
         
         <!-- Test dependencies -->
         <dependency>
