@@ -1,10 +1,12 @@
 package de.probstl.ausgaben;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -40,6 +42,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import de.probstl.ausgaben.budget.Budget;
 import de.probstl.ausgaben.budget.BudgetService;
+import de.probstl.ausgaben.data.EditForm;
 import de.probstl.ausgaben.data.Expense;
 import de.probstl.ausgaben.data.ExpensesRequest;
 import de.probstl.ausgaben.data.HomeForm;
@@ -76,10 +79,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Takes the input from the landing page and load the selected data
 	 * 
-	 * @param homeForm		The form with the selected month if <b>gotoMonth</b> has been
-	 *                 		pressed
-	 * @param req			The request for getting the pressed submit button
-	 * @param requestLocale	The locale from the http request
+	 * @param homeForm      The form with the selected month if <b>gotoMonth</b> has
+	 *                      been pressed
+	 * @param req           The request for getting the pressed submit button
+	 * @param requestLocale The locale from the http request
 	 * @return Template to show
 	 */
 	@PostMapping("/overview")
@@ -90,7 +93,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			return "redirect:/view/currentWeek";
 		}
 
-		LOG.info("dispatch to month: " + homeForm.getSelectedMonth());
+		LOG.info("dispatch to month {}", homeForm.getSelectedMonth());
 
 		LocalDate localDate = null;
 		try {
@@ -122,7 +125,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	@GetMapping("/home")
 	public String showHome(Model model, Authentication auth, Locale requestLocale) {
 
-		final Collection<String> monthList = new ArrayList<String>();
+		final Collection<String> monthList = new ArrayList<>();
 
 		// Here's when we started to collect the expenses
 		LocalDate startDate = LocalDate.of(2020, Month.APRIL, 1);
@@ -141,7 +144,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		HomeForm homeForm = new HomeForm();
 		homeForm.setSelectedMonth(month);
 
-		List<Double> weeksList = new ArrayList<Double>();
+		List<Double> weeksList = new ArrayList<>();
 		double currentMonth = 0.0;
 		double lastMonth = 0.0;
 		double percentOfLastMonth = 0.0;
@@ -157,7 +160,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			percentOfLastMonth = (currentMonth > 0 && lastMonth > 0) ? (currentMonth / lastMonth) * 100.0 : 0.0;
 
 			final double m = currentMonth;
-			if (monthWeeks != null && !monthWeeks.isEmpty()) {
+			if (!monthWeeks.isEmpty()) {
 				currentWeek = monthWeeks.lastEntry().getValue().doubleValue();
 				weeksList = monthWeeks.values().stream()
 						.mapToDouble(x -> (x.doubleValue() > 0 && m > 0) ? (x.doubleValue() / m) * 100.0 : 0.0).boxed()
@@ -179,10 +182,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Shows the expenses by month/year
 	 * 
-	 * @param month	The month
-	 * @param year	The year
-	 * @param model	Model for web view
-	 * @param auth	Auth for choosing the collection
+	 * @param month The month
+	 * @param year  The year
+	 * @param model Model for web view
+	 * @param auth  Auth for choosing the collection
 	 * @return Template to show
 	 */
 	@GetMapping("/view/{month}/{year}")
@@ -194,18 +197,84 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	}
 
 	/**
+	 * Edit the expense with the given id and forward to the edit page
+	 * 
+	 * @param id    The id of the expense that will be modified
+	 * @param auth  Auth for choosing the collection
+	 * @param model The model to store the loaded expense
+	 * @return Template to show
+	 */
+	@GetMapping("/edit/{id}")
+	public String editExpense(@PathVariable(name = "id") String id, Model model, Authentication auth) {
+		String collection = m_FirestoreService.extractCollection(auth);
+		if (collection != null) {
+			Expense expense = m_FirestoreService.getExpense(id, collection);
+			if (expense != null) {
+				EditForm form = new EditForm();
+				form.setCash(expense.isCash());
+				form.setCity(expense.getCity());
+				form.setDescription(expense.getMessage());
+				form.setExpenseId(expense.getId());
+				form.setShop(expense.getShop());
+				form.setAmountFromDouble(expense.getAmountDouble());
+				form.setTimestampFromDate(expense.getTimestamp());
+				model.addAttribute("editForm", form);
+				return "edit";
+			} else {
+				LOG.warn("Expense {} not found in collection {}", id, collection);
+			}
+		} else {
+			LOG.warn("Could not find collection from authentication!");
+		}
+
+		return "redirect:/home";
+	}
+
+	/**
+	 * Save the data from the form
+	 * 
+	 * @param id   The Id that was modified
+	 * @param req  The HTTP request
+	 * @param auth Auth for choosing the collection
+	 * @return Template to show
+	 */
+	@PostMapping("/save/{id}")
+	public String saveExpense(@PathVariable(name = "id") String id, EditForm form, final HttpServletRequest req,
+			Authentication auth) {
+
+		final LocalDateTime dateTime = form.getLocalDateTime();
+
+		if (req.getParameter("save") != null) {
+			Expense expense = new Expense(id);
+			expense.setAmountDouble(form.getAmountDouble());
+			expense.setCity(form.getCity());
+			expense.setMessage(form.getDescription());
+			expense.setPayment(form.isCash() ? Expense.DEFAULT_PAYMENT : "card");
+			expense.setShop(form.getShop());
+			expense.setTimestamp(form.getTimestamp());
+			LOG.info("Saving expense with id {} and values {}", id, form);
+			m_FirestoreService.updateExpense(expense, auth);
+		} else if (req.getParameter("delete") != null) {
+			LOG.info("Deleting expense with id {}", id);
+		}
+
+		return "redirect:/view/" + dateTime.getMonthValue() + "/" + dateTime.getYear();
+	}
+
+	/**
 	 * Allows the export of a month into a CSV file
 	 * 
-	 * @param month			The month that should be exported
-	 * @param year			The year
-	 * @param response		The response to write the CSV data
-	 * @param auth			Auth for choosing the collection
+	 * @param month         The month that should be exported
+	 * @param year          The year
+	 * @param response      The response to write the CSV data
+	 * @param auth          Auth for choosing the collection
 	 * @param requestLocale The locale of the logged in user
-	 * @throws Exception Thrown on error
+			HttpServletResponse response, Authentication auth, Locale requestLocale) throws IOException {
+	 * @throws IOException Thrown on error
 	 */
 	@GetMapping("/export/{month}/{year}")
 	public void exportMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
-			HttpServletResponse response, Authentication auth, Locale requestLocale) throws Exception {
+			HttpServletResponse response, Authentication auth, Locale requestLocale) throws IOException {
 
 		final ExpensesRequest request = ExpensesRequest.forMonth(month, year);
 		final Map<String, CityInfo> cityMapping;
@@ -286,7 +355,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		boolean hasDoubleQuotes = toReturn.indexOf("\"") >= 0;
 		boolean hasComma = toReturn.indexOf(",") >= 0;
 		if (hasDoubleQuotes) {
-			toReturn = toReturn.replaceAll("\"", "\"\"");
+			toReturn = toReturn.replace("\"", "\"\"");
 		}
 		if (hasComma) {
 			toReturn = "\"" + toReturn + "\"";
@@ -342,8 +411,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Returns the data of the current week
 	 * 
-	 * @param model	Model for web view
-	 * @param auth	Authentication for choosing the collection
+	 * @param model Model for web view
+	 * @param auth  Authentication for choosing the collection
 	 * @return Template to show
 	 */
 	@GetMapping("/view/currentWeek")

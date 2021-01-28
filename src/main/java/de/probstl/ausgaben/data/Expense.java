@@ -39,6 +39,9 @@ public class Expense {
 	/** The unique id of this expense */
 	private final String m_Id;
 
+	/** The Budget this expense is for (submitted by Client) */
+	private String m_Budget;
+
 	/**
 	 * Constructor with the unique id of this expense
 	 * 
@@ -197,17 +200,17 @@ public class Expense {
 	}
 
 	/**
-	 * @return the m_Payment
+	 * @return the payment - e.g. cash or credit card
 	 */
 	public String getPayment() {
 		return m_Payment == null ? DEFAULT_PAYMENT : m_Payment;
 	}
 
 	/**
-	 * @param m_Payment the m_Payment to set
+	 * @param payment the payment to set - e.g. cash or credit card
 	 */
-	public void setPayment(String m_Payment) {
-		this.m_Payment = m_Payment;
+	public void setPayment(String payment) {
+		m_Payment = payment;
 	}
 
 	/**
@@ -215,5 +218,19 @@ public class Expense {
 	 */
 	public boolean isCash() {
 		return DEFAULT_PAYMENT.equals(getPayment());
+	}
+
+	/**
+	 * @param budget the budget for this expense
+	 */
+	public void setBudget(String budget) {
+		m_Budget = budget;
+	}
+
+	/**
+	 * @return the budget submitted by the client
+	 */
+	public String getBudget() {
+		return m_Budget;
 	}
 }

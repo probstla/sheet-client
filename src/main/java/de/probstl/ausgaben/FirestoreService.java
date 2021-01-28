@@ -46,6 +46,27 @@ import de.probstl.ausgaben.data.ExpensesRequest;
 @Component
 public class FirestoreService {
 
+	/** Constant for the field message */
+	private static final String FIELD_MESSAGE = "message";
+
+	/** Constant for the field shop */
+	private static final String FIELD_SHOP = "shop";
+
+	/** Constant for the field amount */
+	private static final String FIELD_AMOUNT = "amount";
+
+	/** Constant for the field city */
+	private static final String FIELD_CITY = "city";
+
+	/** Constant for the field payment */
+	private static final String FIELD_PAYMENT = "payment";
+
+	/** Constant for the field timestamp */
+	private static final String FIELD_TIMESTAMP = "timestamp";
+
+	/** Constant for the field budget */
+	private static final String FIELD_BUDGET = "budget";
+
 	/** The reference holds the connection */
 	private final AtomicReference<Firestore> m_Ref = new AtomicReference<>();
 
@@ -100,6 +121,55 @@ public class FirestoreService {
 	}
 
 	/**
+	 * Update the expense
+	 * 
+	 * @param expense The expense to be updated
+	 * @param auth    Auth for getting the collection
+	 * @return if successfull true otherwise false
+	 */
+	public boolean updateExpense(Expense expense, Authentication auth) {
+
+		String collection = extractCollection(auth);
+		if (collection == null) {
+			return false;
+		}
+
+		if (expense.getId() == null) {
+			LOG.warn("Expense has no Id");
+			return false;
+		}
+
+		Map<String, Object> fields = new HashMap<>();
+		fields.put(FIELD_AMOUNT, expense.getAmountDouble());
+
+		if (expense.getBudget() != null && !expense.getBudget().isEmpty()) {
+			fields.put(FIELD_BUDGET, expense.getBudget()); // new field with version 1.2.0
+		}
+
+		fields.put(FIELD_CITY, expense.getCity());
+		fields.put(FIELD_MESSAGE, expense.getMessage());
+		fields.put(FIELD_PAYMENT, expense.getPayment());
+		fields.put(FIELD_SHOP, expense.getShop());
+		fields.put(FIELD_TIMESTAMP, expense.getTimestamp());
+
+		DocumentReference docRef = getFirestoreService().collection(collection).document(expense.getId());
+		ApiFuture<WriteResult> result = docRef.update(fields);
+
+		try {
+			WriteResult writeResult = result.get();
+			LOG.info("Document {} created at {}", docRef.getId(), writeResult.getUpdateTime());
+			return true;
+		} catch (InterruptedException e) {
+			LOG.warn("Interrupt while updating expense {}", expense.getId());
+			Thread.currentThread().interrupt();
+		} catch (ExecutionException e) {
+			LOG.error("Error while updating expense", e.getCause());
+		}
+
+		return false;
+	}
+
+	/**
 	 * Create a new document and store it in the firebase database
 	 * 
 	 * @param expense    The expense that must be saved
@@ -115,23 +185,27 @@ public class FirestoreService {
 		try {
 			betrag = format.parse(expense.getAmount());
 		} catch (ParseException e1) {
-			LOG.error("No valid number: " + expense.getAmount(), e1);
+			LOG.error(String.format("No valid number: %s", expense.getAmount()), e1);
 			return false;
 		}
 
 		LOG.info("Formatted value of {} is {}", expense.getAmount(), betrag);
 
 		Map<String, Object> data = new HashMap<>();
-		data.put("message", expense.getMessage());
-		data.put("shop", expense.getShop());
-		data.put("amount", betrag);
-		data.put("city", expense.getCity());
-		data.put("payment", expense.getPayment());
+		data.put(FIELD_MESSAGE, expense.getMessage());
+		data.put(FIELD_SHOP, expense.getShop());
+		data.put(FIELD_AMOUNT, betrag);
+		data.put(FIELD_CITY, expense.getCity());
+		data.put(FIELD_PAYMENT, expense.getPayment());
+
+		if (expense.getBudget() != null && !expense.getBudget().isEmpty()) {
+			data.put(FIELD_BUDGET, expense.getBudget()); // new field with version 1.2.0
+		}
 
 		if (expense.getTimestamp() == null) {
-			data.put("timestamp", new Date());
+			data.put(FIELD_TIMESTAMP, new Date());
 		} else {
-			data.put("timestamp", expense.getTimestamp());
+			data.put(FIELD_TIMESTAMP, expense.getTimestamp());
 		}
 
 		DocumentReference docRef = getFirestoreService().collection(collection).document();
@@ -142,13 +216,53 @@ public class FirestoreService {
 			LOG.info("Document {} created at {}", docRef.getId(), writeResult.getUpdateTime());
 			return true;
 		} catch (InterruptedException e) {
-			LOG.warn("waiting for result interrupted!");
+			LOG.warn("Interrupt while creating new expense");
 			Thread.currentThread().interrupt();
 		} catch (ExecutionException e) {
-			LOG.error("could not retrieve result from firestore!", e.getCause());
+			LOG.error("Error while creating expense", e.getCause());
 		}
 
 		return true;
+	}
+
+	/**
+	 * Load an expense with an specific Id from the collection
+	 * 
+	 * @param id         The Id of the expense
+	 * @param collection The collection from which the expense is loaded
+	 * @return An expense or null if the id was not found
+	 */
+	public Expense getExpense(String id, String collection) {
+		final Instant start = Instant.now();
+		Duration queryTime = null;
+
+		LOG.info("Find expense with id {} in collection {}", id, collection);
+
+		DocumentSnapshot result = null;
+		try {
+			ApiFuture<DocumentSnapshot> future = getFirestoreService().collection(collection).document(id).get();
+
+			try {
+				result = future.get();
+			} catch (InterruptedException e) {
+				LOG.warn("waiting for result interrupted!");
+				Thread.currentThread().interrupt();
+			} catch (ExecutionException e) {
+				LOG.error("could not retrieve result from firestore!", e.getCause());
+			}
+		} finally {
+			queryTime = Duration.between(start, Instant.now());
+		}
+
+		if (result == null || !result.exists()) {
+			LOG.warn("Expense with id {} not found!", id);
+			return null;
+		}
+
+		LOG.info("Expense with id {} loaded in {} ms. Snapshot timestamp: {}", id, Long.valueOf(queryTime.toMillis()),
+				result.getReadTime());
+
+		return createFromDocument(result);
 	}
 
 	/**
@@ -160,21 +274,22 @@ public class FirestoreService {
 	protected Expense createFromDocument(DocumentSnapshot document) {
 
 		Expense expense = new Expense(document.getId());
-		expense.setShop(document.getString("shop"));
-		expense.setCity(document.getString("city"));
-		expense.setMessage(document.getString("message"));
-		expense.setAmountDouble(document.getDouble("amount"));
-		expense.setPayment(document.getString("payment"));
+		expense.setShop(document.getString(FIELD_SHOP));
+		expense.setCity(document.getString(FIELD_CITY));
+		expense.setMessage(document.getString(FIELD_MESSAGE));
+		expense.setAmountDouble(document.getDouble(FIELD_AMOUNT));
+		expense.setPayment(document.getString(FIELD_PAYMENT));
+		expense.setBudget(document.getString(FIELD_BUDGET));
 
-		Instant originalTimestamp = document.getDate("timestamp").toInstant();
+		Instant originalTimestamp = document.getDate(FIELD_TIMESTAMP).toInstant();
 		LocalDateTime ldt = LocalDateTime.ofInstant(originalTimestamp, m_HomeTimezone);
 		ZonedDateTime zdt = ZonedDateTime.of(ldt, m_SystemTimezone);
 		expense.setTimestamp(Date.from(zdt.toInstant()));
 
 		LOG.debug(
-				"Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR. System ZoneId is {}, Home ZoneId {}.",
+				"Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR for budget '{}'. System ZoneId is {}, Home ZoneId {}.",
 				document.getId(), document.getCreateTime(), expense.getTimestamp(), expense.getShop(),
-				expense.getAmountDouble(), m_SystemTimezone, m_HomeTimezone);
+				expense.getAmountDouble(), expense.getBudget(), m_SystemTimezone, m_HomeTimezone);
 
 		return expense;
 	}
@@ -195,9 +310,9 @@ public class FirestoreService {
 
 		QuerySnapshot queryResult = null;
 		try {
-			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select("amount")
-					.whereGreaterThanOrEqualTo("timestamp", request.getBeginDate())
-					.whereLessThanOrEqualTo("timestamp", request.getEndDate()).orderBy("timestamp").get();
+			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select(FIELD_AMOUNT)
+					.whereGreaterThanOrEqualTo(FIELD_TIMESTAMP, request.getBeginDate())
+					.whereLessThanOrEqualTo(FIELD_TIMESTAMP, request.getEndDate()).orderBy(FIELD_TIMESTAMP).get();
 
 			try {
 				queryResult = future.get();
@@ -220,7 +335,7 @@ public class FirestoreService {
 
 		BigDecimal sum = new BigDecimal(0);
 		for (DocumentSnapshot document : queryResult.getDocuments()) {
-			Double amountValue = document.getDouble("amount");
+			Double amountValue = document.getDouble(FIELD_AMOUNT);
 			if (amountValue != null) {
 				sum = sum.add(BigDecimal.valueOf(amountValue.doubleValue()));
 			}
@@ -242,13 +357,14 @@ public class FirestoreService {
 
 		LOG.info("Find expenses in week from {} in collection {}", request, collection);
 
-		final NavigableMap<Integer, Double> toReturn = new TreeMap<Integer, Double>();
+		final NavigableMap<Integer, Double> toReturn = new TreeMap<>();
 
 		QuerySnapshot queryResult = null;
 		try {
-			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection).select("amount", "timestamp")
-					.whereGreaterThanOrEqualTo("timestamp", request.getBeginDate())
-					.whereLessThanOrEqualTo("timestamp", request.getEndDate()).orderBy("timestamp").get();
+			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection)
+					.select(FIELD_AMOUNT, FIELD_TIMESTAMP)
+					.whereGreaterThanOrEqualTo(FIELD_TIMESTAMP, request.getBeginDate())
+					.whereLessThanOrEqualTo(FIELD_TIMESTAMP, request.getEndDate()).orderBy(FIELD_TIMESTAMP).get();
 
 			try {
 				queryResult = future.get();
@@ -270,9 +386,9 @@ public class FirestoreService {
 				queryResult.getReadTime());
 
 		for (QueryDocumentSnapshot documentSnapshot : queryResult.getDocuments()) {
-			Instant timestamp = documentSnapshot.getTimestamp("timestamp").toDate().toInstant();
+			Instant timestamp = documentSnapshot.getTimestamp(FIELD_TIMESTAMP).toDate().toInstant();
 			Integer week = Integer.valueOf(timestamp.atZone(m_SystemTimezone).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
-			BigDecimal value = BigDecimal.valueOf(documentSnapshot.getDouble("amount"));
+			BigDecimal value = BigDecimal.valueOf(documentSnapshot.getDouble(FIELD_AMOUNT));
 
 			Double sum = toReturn.get(week);
 			if (sum == null) {
@@ -313,8 +429,8 @@ public class FirestoreService {
 		QuerySnapshot queryResult = null;
 		try {
 			ApiFuture<QuerySnapshot> future = getFirestoreService().collection(collection)
-					.whereGreaterThanOrEqualTo("timestamp", request.getBeginDate())
-					.whereLessThanOrEqualTo("timestamp", request.getEndDate()).orderBy("timestamp").get();
+					.whereGreaterThanOrEqualTo(FIELD_TIMESTAMP, request.getBeginDate())
+					.whereLessThanOrEqualTo(FIELD_TIMESTAMP, request.getEndDate()).orderBy(FIELD_TIMESTAMP).get();
 
 			try {
 				queryResult = future.get();
@@ -335,7 +451,7 @@ public class FirestoreService {
 		LOG.info("Query executed in {} ms. Snapshot timestamp: {}", Long.valueOf(queryTime.toMillis()),
 				queryResult.getReadTime());
 
-		final Collection<Expense> toReturn = new ArrayList<Expense>();
+		final Collection<Expense> toReturn = new ArrayList<>();
 
 		for (DocumentSnapshot document : queryResult.getDocuments()) {
 			toReturn.add(createFromDocument(document));
