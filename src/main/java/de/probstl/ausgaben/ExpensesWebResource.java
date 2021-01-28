@@ -207,7 +207,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	@GetMapping("/edit/{id}")
 	public String editExpense(@PathVariable(name = "id") String id, Model model, Authentication auth) {
 		String collection = m_FirestoreService.extractCollection(auth);
-		if (collection == null) {
+		if (collection != null) {
 			Expense expense = m_FirestoreService.getExpense(id, collection);
 			if (expense != null) {
 				EditForm form = new EditForm();
