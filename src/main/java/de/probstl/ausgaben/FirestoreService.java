@@ -121,6 +121,55 @@ public class FirestoreService {
 	}
 
 	/**
+	 * Update the expense
+	 * 
+	 * @param expense The expense to be updated
+	 * @param auth    Auth for getting the collection
+	 * @return if successfull true otherwise false
+	 */
+	public boolean updateExpense(Expense expense, Authentication auth) {
+
+		String collection = extractCollection(auth);
+		if (collection == null) {
+			return false;
+		}
+
+		if (expense.getId() == null) {
+			LOG.warn("Expense has no Id");
+			return false;
+		}
+
+		Map<String, Object> fields = new HashMap<>();
+		fields.put(FIELD_AMOUNT, expense.getAmountDouble());
+
+		if (expense.getBudget() != null && !expense.getBudget().isEmpty()) {
+			fields.put(FIELD_BUDGET, expense.getBudget()); // new field with version 1.2.0
+		}
+
+		fields.put(FIELD_CITY, expense.getCity());
+		fields.put(FIELD_MESSAGE, expense.getMessage());
+		fields.put(FIELD_PAYMENT, expense.getPayment());
+		fields.put(FIELD_SHOP, expense.getShop());
+		fields.put(FIELD_TIMESTAMP, expense.getTimestamp());
+
+		DocumentReference docRef = getFirestoreService().collection(collection).document(expense.getId());
+		ApiFuture<WriteResult> result = docRef.update(fields);
+
+		try {
+			WriteResult writeResult = result.get();
+			LOG.info("Document {} created at {}", docRef.getId(), writeResult.getUpdateTime());
+			return true;
+		} catch (InterruptedException e) {
+			LOG.warn("Interrupt while updating expense {}", expense.getId());
+			Thread.currentThread().interrupt();
+		} catch (ExecutionException e) {
+			LOG.error("Error while updating expense", e.getCause());
+		}
+
+		return false;
+	}
+
+	/**
 	 * Create a new document and store it in the firebase database
 	 * 
 	 * @param expense    The expense that must be saved
@@ -149,7 +198,7 @@ public class FirestoreService {
 		data.put(FIELD_CITY, expense.getCity());
 		data.put(FIELD_PAYMENT, expense.getPayment());
 
-		if (expense.getBudget() != null && expense.getBudget().isEmpty()) {
+		if (expense.getBudget() != null && !expense.getBudget().isEmpty()) {
 			data.put(FIELD_BUDGET, expense.getBudget()); // new field with version 1.2.0
 		}
 
@@ -167,10 +216,10 @@ public class FirestoreService {
 			LOG.info("Document {} created at {}", docRef.getId(), writeResult.getUpdateTime());
 			return true;
 		} catch (InterruptedException e) {
-			LOG.warn("waiting for result interrupted!");
+			LOG.warn("Interrupt while creating new expense");
 			Thread.currentThread().interrupt();
 		} catch (ExecutionException e) {
-			LOG.error("could not retrieve result from firestore!", e.getCause());
+			LOG.error("Error while creating expense", e.getCause());
 		}
 
 		return true;

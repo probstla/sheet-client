@@ -1,5 +1,6 @@
 package de.probstl.ausgaben;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
@@ -14,7 +15,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -160,7 +160,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			percentOfLastMonth = (currentMonth > 0 && lastMonth > 0) ? (currentMonth / lastMonth) * 100.0 : 0.0;
 
 			final double m = currentMonth;
-			if (monthWeeks != null && !monthWeeks.isEmpty()) {
+			if (!monthWeeks.isEmpty()) {
 				currentWeek = monthWeeks.lastEntry().getValue().doubleValue();
 				weeksList = monthWeeks.values().stream()
 						.mapToDouble(x -> (x.doubleValue() > 0 && m > 0) ? (x.doubleValue() / m) * 100.0 : 0.0).boxed()
@@ -206,65 +206,59 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 */
 	@GetMapping("/edit/{id}")
 	public String editExpense(@PathVariable(name = "id") String id, Model model, Authentication auth) {
-		// http://localhost:8080/money/edit/cOhvwl5ktsrAzAqoRi1D
 		String collection = m_FirestoreService.extractCollection(auth);
-		Expense expense = m_FirestoreService.getExpense(id, collection);
-		if (expense != null) {
-			EditForm form = new EditForm();
-			form.setCash(expense.isCash());
-			form.setCity(expense.getCity());
-			form.setDescription(expense.getMessage());
-			form.setExpenseId(expense.getId());
-			form.setShop(expense.getShop());
-			
-			NumberFormat format = NumberFormat.getNumberInstance(Locale.GERMAN);
-			form.setAmountStr(format.format(expense.getAmountDouble().doubleValue()));
-
-			Date expenseTimestamp = expense.getTimestamp();
-			ZonedDateTime dateTime = ZonedDateTime.ofInstant(expenseTimestamp.toInstant(), ZoneId.of("Europe/Berlin"));
-			form.setTimestampStr(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").format(dateTime));
-
-			model.addAttribute("editForm", form);
-			return "edit";
+		if (collection == null) {
+			Expense expense = m_FirestoreService.getExpense(id, collection);
+			if (expense != null) {
+				EditForm form = new EditForm();
+				form.setCash(expense.isCash());
+				form.setCity(expense.getCity());
+				form.setDescription(expense.getMessage());
+				form.setExpenseId(expense.getId());
+				form.setShop(expense.getShop());
+				form.setAmountFromDouble(expense.getAmountDouble());
+				form.setTimestampFromDate(expense.getTimestamp());
+				model.addAttribute("editForm", form);
+				return "edit";
+			} else {
+				LOG.warn("Expense {} not found in collection {}", id, collection);
+			}
+		} else {
+			LOG.warn("Could not find collection from authentication!");
 		}
 
-		return "home";
+		return "redirect:/home";
 	}
 
 	/**
 	 * Save the data from the form
 	 * 
-	 * @param id            The Id that was modified
-	 * @param req           The HTTP request
-	 * @param requestLocale The locale from the browser
+	 * @param id   The Id that was modified
+	 * @param req  The HTTP request
+	 * @param auth Auth for choosing the collection
 	 * @return Template to show
 	 */
 	@PostMapping("/save/{id}")
 	public String saveExpense(@PathVariable(name = "id") String id, EditForm form, final HttpServletRequest req,
-			Locale requestLocale) {
+			Authentication auth) {
+
+		final LocalDateTime dateTime = form.getLocalDateTime();
 
 		if (req.getParameter("save") != null) {
-
 			Expense expense = new Expense(id);
 			expense.setAmountDouble(form.getAmountDouble());
 			expense.setCity(form.getCity());
 			expense.setMessage(form.getDescription());
-			expense.setPayment(form.isCash() ? "cash" : "card");
+			expense.setPayment(form.isCash() ? Expense.DEFAULT_PAYMENT : "card");
 			expense.setShop(form.getShop());
-
-			LocalDateTime dateTime = LocalDateTime.parse(form.getTimestampStr(), DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
-			ZonedDateTime zDateTime = ZonedDateTime.of(dateTime, ZoneId.of("Europe/Berlin"));
-			expense.setTimestamp(Date.from(zDateTime.toInstant()));
-			
+			expense.setTimestamp(form.getTimestamp());
 			LOG.info("Saving expense with id {} and values {}", id, form);
-			return "redirect:/view/" + dateTime.getMonthValue() + "/" + dateTime.getYear();
+			m_FirestoreService.updateExpense(expense, auth);
 		} else if (req.getParameter("delete") != null) {
-			// return "redirect:/export/" + localDate.getMonthValue() + "/" +
-			// localDate.getYear();
 			LOG.info("Deleting expense with id {}", id);
 		}
 
-		return "redirect:/home";
+		return "redirect:/view/" + dateTime.getMonthValue() + "/" + dateTime.getYear();
 	}
 
 	/**
@@ -275,11 +269,12 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param response      The response to write the CSV data
 	 * @param auth          Auth for choosing the collection
 	 * @param requestLocale The locale of the logged in user
-	 * @throws Exception Thrown on error
+			HttpServletResponse response, Authentication auth, Locale requestLocale) throws IOException {
+	 * @throws IOException Thrown on error
 	 */
 	@GetMapping("/export/{month}/{year}")
 	public void exportMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
-			HttpServletResponse response, Authentication auth, Locale requestLocale) throws Exception {
+			HttpServletResponse response, Authentication auth, Locale requestLocale) throws IOException {
 
 		final ExpensesRequest request = ExpensesRequest.forMonth(month, year);
 		final Map<String, CityInfo> cityMapping;
@@ -360,7 +355,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		boolean hasDoubleQuotes = toReturn.indexOf("\"") >= 0;
 		boolean hasComma = toReturn.indexOf(",") >= 0;
 		if (hasDoubleQuotes) {
-			toReturn = toReturn.replaceAll("\"", "\"\"");
+			toReturn = toReturn.replace("\"", "\"\"");
 		}
 		if (hasComma) {
 			toReturn = "\"" + toReturn + "\"";
