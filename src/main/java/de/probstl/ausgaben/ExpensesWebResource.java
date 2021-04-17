@@ -12,6 +12,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,8 +64,11 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/** The Logger */
 	private static final Logger LOG = LoggerFactory.getLogger(ExpensesWebResource.class);
 
-	/** Pattern for formatting and parsing month */
-	private static final String MONTH_PATTERN = "MMMM yyyy";
+	/** Pattern for formatting and parsing month request parameter */
+	private static final String MONTH_PATTERN_REQ = "MM-yyyy";
+
+	/** Pattern for displaying month in navigation */
+	private static final String MONTH_PATTERN_TEXT = "MMMM yy";
 
 	@Override
 	public void addViewControllers(ViewControllerRegistry registry) {
@@ -93,15 +97,20 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			return "redirect:/view/currentWeek";
 		}
 
-		LOG.info("dispatch to month {}", homeForm.getSelectedMonth());
+		String selectedMonth = homeForm.getSelectedMonth();
+		if (req.getParameter("gotoMonth") != null && !req.getParameter("gotoMonth").trim().isEmpty()) {
+			selectedMonth = req.getParameter("gotoMonth");
+		}
+
+		LOG.info("dispatch to month {}", selectedMonth);
 
 		LocalDate localDate = null;
 		try {
 			// for parsing the day of month has to be added for some reason
-			localDate = LocalDate.parse("1 " + homeForm.getSelectedMonth(),
-					DateTimeFormatter.ofPattern("d " + MONTH_PATTERN, requestLocale));
+			localDate = LocalDate.parse("1-" + selectedMonth,
+					DateTimeFormatter.ofPattern("d-" + MONTH_PATTERN_REQ, requestLocale));
 		} catch (DateTimeParseException e) {
-			LOG.error("unparseable selection in landing page: " + homeForm.getSelectedMonth(), e);
+			LOG.error("unparseable selection in landing page: " + selectedMonth, e);
 			return "redirect:/home";
 		}
 
@@ -125,17 +134,19 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	@GetMapping("/home")
 	public String showHome(Model model, Authentication auth, Locale requestLocale) {
 
-		final Collection<String> monthList = new ArrayList<>();
+		final Collection<String[]> monthList = new ArrayList<>();
 
 		// Here's when we started to collect the expenses
 		LocalDate startDate = LocalDate.of(2020, Month.APRIL, 1);
 
 		String month = null;
+		String monthVal = null;
 		while (startDate.isBefore(LocalDate.now()) || startDate.equals(LocalDate.now())) {
 
-			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN, requestLocale));
-			LOG.debug("Adding month for selection {}", month);
-			monthList.add(month);
+			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale));
+			monthVal = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN_REQ));
+			LOG.debug("Adding month for selection {}:{}", monthVal, month);
+			monthList.add(new String[] {monthVal, month});
 
 			startDate = startDate.plusMonths(1);
 		}
@@ -186,13 +197,14 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param year  The year
 	 * @param model Model for web view
 	 * @param auth  Auth for choosing the collection
+	 * @param requestLocale The locale from the request
 	 * @return Template to show
 	 */
 	@GetMapping("/view/{month}/{year}")
 	public String showMonth(@PathVariable(name = "month") String month, @PathVariable(name = "year") String year,
-			Model model, Authentication auth) {
+			Model model, Authentication auth, Locale requestLocale) {
 		final ExpensesRequest request = ExpensesRequest.forMonth(month, year);
-		loadData(request, model, auth);
+		loadData(request, model, auth, requestLocale);
 		return "email";
 	}
 
@@ -268,8 +280,9 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param year          The year
 	 * @param response      The response to write the CSV data
 	 * @param auth          Auth for choosing the collection
-	 * @param requestLocale The locale of the logged in user
-			HttpServletResponse response, Authentication auth, Locale requestLocale) throws IOException {
+	 * @param requestLocale The locale of the logged in user HttpServletResponse
+	 *                      response, Authentication auth, Locale requestLocale)
+	 *                      throws IOException {
 	 * @throws IOException Thrown on error
 	 */
 	@GetMapping("/export/{month}/{year}")
@@ -371,8 +384,9 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param request The request providing begin and end dates
 	 * @param model   The model that must be filled with data
 	 * @param auth    Authentication for choosing the collection
+	 * @param requestLocale The locale of the request
 	 */
-	private void loadData(ExpensesRequest request, Model model, Authentication auth) {
+	private void loadData(ExpensesRequest request, Model model, Authentication auth, Locale requestLocale) {
 		final Map<String, CityInfo> cityMapping;
 
 		String collection = m_FirestoreService.extractCollection(auth);
@@ -406,6 +420,17 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		model.addAttribute("sumShops", mailInfo.getSumShops());
 		model.addAttribute("sum", mailInfo.getSum());
 		model.addAttribute("currency", "€");
+
+		LocalDateTime previousMonth = request.getPreviousMonth();
+		model.addAttribute("previousMonthStr", DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale).format(previousMonth));
+		model.addAttribute("previousMonth", String.format("%02d-%d", 
+				previousMonth.get(ChronoField.MONTH_OF_YEAR), previousMonth.get(ChronoField.YEAR)));
+		
+		LocalDateTime nextMonth = request.getNextMonth();
+		model.addAttribute("nextMonthStr", DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT,
+				requestLocale).format(nextMonth));
+		model.addAttribute("nextMonth", String.format("%02d-%d", nextMonth.get(ChronoField.MONTH_OF_YEAR),
+				nextMonth.get(ChronoField.YEAR)));
 	}
 
 	/**
@@ -416,9 +441,9 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Template to show
 	 */
 	@GetMapping("/view/currentWeek")
-	public String showWeek(Model model, Authentication auth) {
+	public String showWeek(Model model, Authentication auth, Locale requestLocale) {
 		final ExpensesRequest request = ExpensesRequest.forCurrentWeek();
-		loadData(request, model, auth);
+		loadData(request, model, auth, requestLocale);
 		return "email";
 	}
 
