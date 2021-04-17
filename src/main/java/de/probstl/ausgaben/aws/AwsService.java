@@ -47,11 +47,11 @@ public class AwsService {
     private String service;
 
     /** The AWS secret access key */
-    @Value("${aws.secretAccessKey}")
+    @Value("${AWS_SECRET_ACCESS_KEY}")
     private String secretAccessKey;
 
     /** The AWS access key id */
-    @Value("${aws.accessKeyId}")
+    @Value("${AWS_ACCESS_KEY_ID}")
     private String accessKeyId;
 
     /** The URL part appended the endpoint and part of canonical request */
