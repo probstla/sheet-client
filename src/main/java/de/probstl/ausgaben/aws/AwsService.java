@@ -119,10 +119,15 @@ public class AwsService {
         authorizationStr.append("SignedHeaders=content-type;host;x-amz-date, ");
         authorizationStr.append("Signature=").append(signature);
 
-        String result = webClient.post().uri(this.canonicalUri).accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(payload))
-                .header("Authorization", authorizationStr.toString()).header("x-amz-date", dateTimeStr)
-                .header("host", this.hostname).retrieve().bodyToMono(String.class).block();
+        String result = "";
+        try {
+            result = webClient.post().uri(this.canonicalUri).accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(payload))
+                    .header("Authorization", authorizationStr.toString()).header("x-amz-date", dateTimeStr)
+                    .header("host", this.hostname).retrieve().bodyToMono(String.class).block();
+        } catch (Exception e) {
+            logger.warn("call failed", e);
+        }
 
         logger.info("Response: {}", result);
         return true;
