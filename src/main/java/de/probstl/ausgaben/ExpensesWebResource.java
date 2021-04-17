@@ -146,7 +146,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale));
 			monthVal = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN_REQ));
 			LOG.debug("Adding month for selection {}:{}", monthVal, month);
-			monthList.add(new String[] {monthVal, month});
+			monthList.add(new String[] { monthVal, month });
 
 			startDate = startDate.plusMonths(1);
 		}
@@ -193,10 +193,10 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	/**
 	 * Shows the expenses by month/year
 	 * 
-	 * @param month The month
-	 * @param year  The year
-	 * @param model Model for web view
-	 * @param auth  Auth for choosing the collection
+	 * @param month         The month
+	 * @param year          The year
+	 * @param model         Model for web view
+	 * @param auth          Auth for choosing the collection
 	 * @param requestLocale The locale from the request
 	 * @return Template to show
 	 */
@@ -246,6 +246,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * Save the data from the form
 	 * 
 	 * @param id   The Id that was modified
+	 * @param form The form where the entered data is kept
 	 * @param req  The HTTP request
 	 * @param auth Auth for choosing the collection
 	 * @return Template to show
@@ -381,9 +382,9 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * Load all expenses during the given request interval and fill the given model
 	 * with data
 	 * 
-	 * @param request The request providing begin and end dates
-	 * @param model   The model that must be filled with data
-	 * @param auth    Authentication for choosing the collection
+	 * @param request       The request providing begin and end dates
+	 * @param model         The model that must be filled with data
+	 * @param auth          Authentication for choosing the collection
 	 * @param requestLocale The locale of the request
 	 */
 	private void loadData(ExpensesRequest request, Model model, Authentication auth, Locale requestLocale) {
@@ -422,22 +423,24 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		model.addAttribute("currency", "€");
 
 		LocalDateTime previousMonth = request.getPreviousMonth();
-		model.addAttribute("previousMonthStr", DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale).format(previousMonth));
-		model.addAttribute("previousMonth", String.format("%02d-%d", 
-				previousMonth.get(ChronoField.MONTH_OF_YEAR), previousMonth.get(ChronoField.YEAR)));
-		
+		model.addAttribute("previousMonthStr",
+				DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale).format(previousMonth));
+		model.addAttribute("previousMonth", String.format("%02d-%d", previousMonth.get(ChronoField.MONTH_OF_YEAR),
+				previousMonth.get(ChronoField.YEAR)));
+
 		LocalDateTime nextMonth = request.getNextMonth();
-		model.addAttribute("nextMonthStr", DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT,
-				requestLocale).format(nextMonth));
-		model.addAttribute("nextMonth", String.format("%02d-%d", nextMonth.get(ChronoField.MONTH_OF_YEAR),
-				nextMonth.get(ChronoField.YEAR)));
+		model.addAttribute("nextMonthStr",
+				DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale).format(nextMonth));
+		model.addAttribute("nextMonth",
+				String.format("%02d-%d", nextMonth.get(ChronoField.MONTH_OF_YEAR), nextMonth.get(ChronoField.YEAR)));
 	}
 
 	/**
 	 * Returns the data of the current week
 	 * 
-	 * @param model Model for web view
-	 * @param auth  Authentication for choosing the collection
+	 * @param model         Model for web view
+	 * @param auth          Authentication for choosing the collection
+	 * @param requestLocale The locale from the web request
 	 * @return Template to show
 	 */
 	@GetMapping("/view/currentWeek")
