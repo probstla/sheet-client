@@ -26,6 +26,9 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         run: mvn -B javadoc:javadoc package --file pom.xml
+        with:
+          awsAccesKeyId: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          awsSecretAccessKey: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Publish to GitHub Packages Apache Maven
         run: mvn deploy
         env:
