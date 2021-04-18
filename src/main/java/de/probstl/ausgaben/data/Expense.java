@@ -4,9 +4,6 @@ import java.util.Date;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * A expense
  */
@@ -65,7 +62,6 @@ public class Expense {
 	/**
 	 * @return id
 	 */
-	@JsonProperty("Id")
 	public String getId() {
 		return m_Id;
 	}
@@ -136,7 +132,6 @@ public class Expense {
 	 * 
 	 * @return Amount (text)
 	 */
-	@JsonIgnore
 	public String getAmount() {
 		return m_Amount;
 	}
@@ -207,7 +202,6 @@ public class Expense {
 	/**
 	 * @return the payment - e.g. cash or credit card
 	 */
-	@JsonIgnore
 	public String getPayment() {
 		return m_Payment == null ? DEFAULT_PAYMENT : m_Payment;
 	}
