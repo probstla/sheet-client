@@ -1,8 +1,6 @@
 package de.probstl.ausgaben;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -22,12 +20,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Component;
-
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -36,6 +28,12 @@ import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
 
 import de.probstl.ausgaben.data.Expense;
 import de.probstl.ausgaben.data.ExpensesRequest;
@@ -180,21 +178,10 @@ public class FirestoreService {
 	 */
 	public boolean createExpense(Expense expense, Locale locale, String collection) {
 
-		NumberFormat format = NumberFormat.getNumberInstance(locale);
-		Number betrag = null;
-		try {
-			betrag = format.parse(expense.getAmount());
-		} catch (ParseException e1) {
-			LOG.error(String.format("No valid number: %s", expense.getAmount()), e1);
-			return false;
-		}
-
-		LOG.info("Formatted value of {} is {}", expense.getAmount(), betrag);
-
 		Map<String, Object> data = new HashMap<>();
 		data.put(FIELD_MESSAGE, expense.getMessage());
 		data.put(FIELD_SHOP, expense.getShop());
-		data.put(FIELD_AMOUNT, betrag);
+		data.put(FIELD_AMOUNT, expense.getAmountDouble());
 		data.put(FIELD_CITY, expense.getCity());
 		data.put(FIELD_PAYMENT, expense.getPayment());
 
@@ -222,7 +209,7 @@ public class FirestoreService {
 			LOG.error("Error while creating expense", e.getCause());
 		}
 
-		return true;
+		return false;
 	}
 
 	/**
