@@ -4,11 +4,15 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
@@ -58,6 +62,10 @@ public class AwsService {
     @Value("${aws.canonicalUri}")
     private String canonicalUri;
 
+    /** Mapper for creating the JSON */
+    @Autowired
+    private ObjectMapper jsonMapper;
+
     /**
      * Send the expense to an AWS API Gateway configured
      * 
@@ -75,11 +83,17 @@ public class AwsService {
         String credentialScope = dateStr.concat("/").concat(this.region).concat("/").concat(this.service)
                 .concat("/aws4_request");
 
-        String payload = "{" + "\"KeySchema\": [" + "{" + "\"KeyType\": \"HASH\"," + "\"AttributeName\": \"Id\"" + "}"
-                + "]," + "\"TableName\": \"TestTable\"," + "\"AttributeDefinitions\": [" + "{"
-                + "\"AttributeName\": \"Id\"," + "\"AttributeType\": \"S\"" + "}" + "],"
-                + "\"ProvisionedThroughput\": {" + "\"WriteCapacityUnits\": 5," + "\"ReadCapacityUnits\": 5" + "}"
-                + "}";
+        AwsDataValue value = new AwsDataValue(expense);
+        String payload = "";
+        try {
+            payload = this.jsonMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e1) {
+            logger.error("error creating json", e1);
+            return false;
+        }
+
+        logger.info("JSON: {}", payload);
+
         String payloadHashStr = DigestUtils.sha256Hex(payload);
 
         // ************* TASK 1: CREATE A CANONICAL REQUEST *************

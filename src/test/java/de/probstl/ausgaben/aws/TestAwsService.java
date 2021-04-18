@@ -26,6 +26,7 @@ public class TestAwsService {
 
         Expense expense = new Expense(UUID.randomUUID().toString());
         expense.setAmount("3,49");
+        expense.setAmountDouble(Double.valueOf(3.49));
         expense.setBudget("coffee");
         expense.setCity("Berlin");
         expense.setMessage("Cappuccino grande");
