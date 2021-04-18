@@ -73,6 +73,8 @@ public class EditForm {
 
     /**
      * Set the timestamp string based on the given date
+     * 
+     * @param date The date value that should be set as string
      */
     public void setTimestampFromDate(Date date) {
         ZonedDateTime dateTime = ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of(ZONE_DEFAULT));

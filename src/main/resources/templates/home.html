@@ -93,7 +93,7 @@
                         th:text="#{home.gotoWeek}">gotoWeek</button>
                       <select th:field="*{selectedMonth}">
                         <option th:each="month : ${monthSelection}"
-                          th:value="${month}" th:text="${month}">Monatauswahl</option>
+                          th:value="${month[0]}" th:text="${month[1]}">Monatauswahl</option>
                       </select>
                       <button type="submit" name="gotoMonth"
                         th:text="#{home.gotoMonth}">gotoMonth</button>
