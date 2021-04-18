@@ -4,16 +4,12 @@ import java.util.Date;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A expense
  */
-@JsonAutoDetect(getterVisibility = Visibility.PUBLIC_ONLY, fieldVisibility = Visibility.NONE)
 public class Expense {
 
 	/** Default payment if no payment was defined */
@@ -159,7 +155,6 @@ public class Expense {
 	 * 
 	 * @return Amount (number)
 	 */
-	@JsonProperty("amount")
 	public Double getAmountDouble() {
 		return m_AmountDouble;
 	}
@@ -178,7 +173,6 @@ public class Expense {
 	 * 
 	 * @return Timestamp
 	 */
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SS'Z'", timezone = "UTC")
 	public Date getTimestamp() {
 		return m_Timestamp;
 	}

@@ -19,7 +19,7 @@ public class AwsDataValue {
 
     /** The expense transported as Item */
     @JsonProperty("Item")
-    private final Expense data;
+    private final AwsDataItem data;
 
     /**
      * Constructor needs an expense. The expense is copied with a unique UUID as id
@@ -30,12 +30,13 @@ public class AwsDataValue {
         this.tableName = "Ausgaben";
 
         UUID id = UUID.randomUUID();
-        this.data = new Expense(id.toString());
-        this.data.setAmountDouble(expense.getAmountDouble());
+        this.data = new AwsDataItem();
+        this.data.setId(id.toString());
+        this.data.setAmount(expense.getAmountDouble());
         this.data.setBudget(expense.getBudget());
         this.data.setCity(expense.getCity());
         this.data.setMessage(expense.getMessage());
-        this.data.setPayment(expense.getPayment());
+        this.data.setCash(expense.isCash());
         this.data.setShop(expense.getShop());
         this.data.setTimestamp(expense.getTimestamp());
     }
