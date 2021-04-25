@@ -1,5 +1,6 @@
 package de.probstl.ausgaben.aws;
 
+import java.util.Date;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,6 +39,11 @@ public class AwsDataValue {
         this.data.setMessage(expense.getMessage());
         this.data.setCash(expense.isCash());
         this.data.setShop(expense.getShop());
-        this.data.setTimestamp(expense.getTimestamp());
+
+        Date timestamp = expense.getTimestamp();
+        if (timestamp == null) {
+            timestamp = new Date();
+        }
+        this.data.setTimestamp(timestamp);
     }
 }

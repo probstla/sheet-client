@@ -92,12 +92,12 @@ public class Expense {
 	}
 
 	/**
-	 * Returns the shop
+	 * Returns the shop without leading or trailing spaces
 	 * 
 	 * @return Shop
 	 */
 	public String getShop() {
-		return m_Shop;
+		return m_Shop != null ? m_Shop.trim() : null;
 	}
 
 	/**
@@ -110,12 +110,12 @@ public class Expense {
 	}
 
 	/**
-	 * Returns the message (description)
+	 * Returns the message (description) without leading or trailing spaces
 	 * 
 	 * @return Message
 	 */
 	public String getMessage() {
-		return m_Message;
+		return m_Message != null ? m_Message.trim() : null;
 	}
 
 	/**
