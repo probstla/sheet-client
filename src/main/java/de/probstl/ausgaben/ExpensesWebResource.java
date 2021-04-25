@@ -139,12 +139,15 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 		// Here's when we started to collect the expenses
 		LocalDate startDate = LocalDate.of(2020, Month.APRIL, 1);
 
+		DateTimeFormatter labelPattern = DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale);
+		DateTimeFormatter valuePattern = DateTimeFormatter.ofPattern(MONTH_PATTERN_REQ, requestLocale);
+
 		String month = null;
 		String monthVal = null;
 		while (startDate.isBefore(LocalDate.now()) || startDate.equals(LocalDate.now())) {
 
-			month = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN_TEXT, requestLocale));
-			monthVal = startDate.format(DateTimeFormatter.ofPattern(MONTH_PATTERN_REQ));
+			month = startDate.format(labelPattern);
+			monthVal = startDate.format(valuePattern);
 			LOG.debug("Adding month for selection {}:{}", monthVal, month);
 			monthList.add(new String[] { monthVal, month });
 
@@ -153,7 +156,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 
 		// Initialize Form with latest month
 		HomeForm homeForm = new HomeForm();
-		homeForm.setSelectedMonth(month);
+		homeForm.setSelectedMonth(LocalDate.now().format(valuePattern));
 
 		List<Double> weeksList = new ArrayList<>();
 		double currentMonth = 0.0;
