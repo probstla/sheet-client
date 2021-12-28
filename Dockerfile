@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:jre-11.0.10_9-alpine
+FROM adoptopenjdk/openjdk11:jre-11.0.13_8-alpine
 RUN addgroup -S spring && adduser -S spring -G spring
 #RUN groupadd spring && useradd -g spring spring
 RUN apk --no-cache add curl \
