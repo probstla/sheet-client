@@ -3,7 +3,9 @@
 
 name: Maven Develop Build
 
-on: 
+on:
+  schedule:
+      - cron '0 4 * * SUN'  # Sunday at 4 AM
   push:
     branches:
       - develop
