@@ -1,5 +1,9 @@
 package de.probstl.ausgaben;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.probstl.ausgaben.aws.AwsService;
 import de.probstl.ausgaben.data.Expense;
 
 @RestController
@@ -30,8 +35,12 @@ public class ExpensesRestResource {
 	@Autowired
 	private FirestoreService m_FirestoreService;
 
+	/** The service when the expense is also sent to AWS DynamoDB */
+	@Autowired
+	private AwsService m_AwsService;
+
 	@PostMapping(path = "/create")
-	public ResponseEntity<?> createAusgabe(@Valid @RequestBody Expense expense, Locale requestLocale,
+	public ResponseEntity<String> createAusgabe(@Valid @RequestBody Expense expense, Locale requestLocale,
 			Authentication authentication) {
 
 		Optional<? extends GrantedAuthority> authority = authentication.getAuthorities().stream().findFirst();
@@ -43,11 +52,35 @@ public class ExpensesRestResource {
 
 		LOG.info("Using collection {} for user {}", collection, authentication.getName());
 
+		NumberFormat format = NumberFormat.getNumberInstance(requestLocale);
+		try {
+			double betrag = format.parse(expense.getAmount()).doubleValue();
+			expense.setAmountDouble(Double.valueOf(betrag));
+		} catch (ParseException e1) {
+			LOG.error(String.format("No valid number: %s", expense.getAmount()), e1);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 		LOG.info("New expense with description '{}' in shop '{}' with amount '{}' payed with {} in locale {}.",
-				expense.getMessage(), expense.getShop(), expense.getAmount(), expense.getPayment(), requestLocale);
+				expense.getMessage(), expense.getShop(), expense.getAmountDouble(), expense.getPayment(),
+				requestLocale);
 
 		if (!m_FirestoreService.createExpense(expense, requestLocale, collection)) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		if (!"flo".equals(authentication.getName())) {
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
+
+		Instant start = Instant.now();
+		try {
+			m_AwsService.sendExpense(expense);
+		} catch (Exception e) {
+			LOG.error("Error saving expense to AWS", e);
+		} finally {
+			long time = Duration.between(start, Instant.now()).toMillis();
+			LOG.info("AWS request finished after {} ms.", Long.valueOf(time));
 		}
 
 		return new ResponseEntity<>(HttpStatus.OK);

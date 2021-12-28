@@ -128,11 +128,28 @@ public class ExpensesRequest {
 		return m_EndDate;
 	}
 
+	/**
+	 * @return returns the next month 
+	 */
+	public LocalDateTime getNextMonth() {
+		LocalDateTime dateTime = LocalDateTime.ofInstant(m_BeginDate.toInstant(), ZoneId.systemDefault());
+		if(dateTime.plusMonths(1).isAfter(LocalDateTime.now())) {
+			return dateTime;
+		}
+		return dateTime.plusMonths(1);
+	} 
+
+	/**
+	 * @return returns the previous month
+	 */
+	public LocalDateTime getPreviousMonth() {
+		return LocalDateTime.ofInstant(m_BeginDate.toInstant(), ZoneId.systemDefault()).minusMonths(1);
+	}
+
 	@Override
 	public String toString() {
 		return MessageFormat.format(
 				"time interval [{0,date,yyyy-MM-dd} {0,time,HH:mm:ss}] => [{1,date,yyyy-MM-dd} {1,time,HH:mm:ss}]",
 				getBeginDate(), getEndDate());
-
 	}
 }

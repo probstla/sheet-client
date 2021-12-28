@@ -202,14 +202,28 @@
             </td>
           </tr>
           <tr>
-            <td
-              th:text="|#{total.overall} ${#numbers.formatDecimal(sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
-              style="font-family: monospace; font-size: 12pt; padding: 3px 10px 10px 10px; border-top: solid #677077 2px"
-              align="right">Gesamt: 6,45 €</td>
+            <td style="border-bottom: solid #677077 2px">&nbsp;</td>
           </tr>
           <tr>
-            <td bgcolor="#A2C523"
-              style="padding: 10px 10px 10px 10px; font-family: sans-serif; font-size: 12pt; color: #1d2120;">
+            <td>
+              <table width="100%">
+                <tr>
+                  <td style="vertical-align: top;">
+                    <form action="#" th:action="@{/overview}" method="POST">
+                      <button type="submit" name="gotoMonth" th:value="${previousMonth}" th:text="${previousMonthStr}">gotoPrevious</button>
+                      <button type="submit" name="gotoHome" th:text="#{email.gotoHome}">gotoHome</button>
+                      <button type="submit" name="gotoMonth" th:value="${nextMonth}" th:text="${nextMonthStr}">gotoNext</button>
+                    </form>
+                  </td>
+                  <td th:text="|#{total.overall} ${#numbers.formatDecimal(sum, 1, 'POINT', 2, 'COMMA')} ${currency}|"
+                    style="font-family: monospace; font-size: 12pt; padding: 3px 10px 10px 10px; text-align: right;">Gesamt: 6,45 €</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="background-color: #A2C523; padding: 10px 10px 10px 10px; font-family: sans-serif; font-size: 12pt; color: #1d2120;">
               (c) by probstl.de</td>
           </tr>
         </table>
