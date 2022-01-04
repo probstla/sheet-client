@@ -271,7 +271,9 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			LOG.info("Saving expense with id {} and values {}", id, form);
 			m_FirestoreService.updateExpense(expense, auth);
 		} else if (req.getParameter("delete") != null) {
-			LOG.info("Deleting expense with id {}", id);
+			String collection = m_FirestoreService.extractCollection(auth);
+			m_FirestoreService.deleteExpense(id, collection);
+			LOG.info("Expense with id {} was deleted", id);
 		}
 
 		return "redirect:/view/" + dateTime.getMonthValue() + "/" + dateTime.getYear();

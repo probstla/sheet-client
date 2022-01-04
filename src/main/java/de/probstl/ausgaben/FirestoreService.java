@@ -389,6 +389,45 @@ public class FirestoreService {
 	}
 
 	/**
+	 * Delete the expense with the given id
+	 * 
+	 * @param id         The id of the document that should be deleted
+	 * @param collection The collection where the id should be found
+	 * @return If successful true is returned
+	 */
+	public boolean deleteExpense(String id, String collection) {
+		LOG.info("Deleting expense with id {}", id);
+
+		final Instant start = Instant.now();
+		Duration queryTime = null;
+
+		WriteResult result = null;
+		try {
+			ApiFuture<WriteResult> future = getFirestoreService().collection(collection).document(id).delete();
+
+			try {
+				result = future.get();
+			} catch (InterruptedException e) {
+				LOG.warn("waiting for result interrupted!");
+				Thread.currentThread().interrupt();
+			} catch (ExecutionException e) {
+				LOG.error("could not retrieve result from firestore!", e.getCause());
+			}
+		} finally {
+			queryTime = Duration.between(start, Instant.now());
+		}
+
+		if (result == null) {
+			return false;
+		}
+
+		LOG.info("Delete query executed in {} ms. Update time: {}", Long.valueOf(queryTime.toMillis()),
+				result.getUpdateTime());
+
+		return true;
+	}
+
+	/**
 	 * Find all expenses for a collection for the given time interval
 	 * 
 	 * @param request    The begin and end interval
