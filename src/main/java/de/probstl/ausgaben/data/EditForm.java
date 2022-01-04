@@ -3,7 +3,6 @@ package de.probstl.ausgaben.data;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -11,6 +10,7 @@ import java.util.Locale;
 
 import org.slf4j.LoggerFactory;
 
+import de.probstl.ausgaben.TimezoneUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -25,10 +25,7 @@ public class EditForm {
 
     /** The format to format and parse the timestamp */
     private static final String DATE_FORMAT = "dd.MM.yyyy HH:mm:ss";
-
-    /** The timezone for parsing the timestamp str */
-    private static final String ZONE_DEFAULT = "Europe/Berlin";
-
+    
     /** The id of the expense */
     private String expenseId;
 
@@ -74,10 +71,10 @@ public class EditForm {
     /**
      * Set the timestamp string based on the given date
      * 
-     * @param date The date value that should be set as string
+     * @param date The date value that should be set as string as UTC date
      */
     public void setTimestampFromDate(Date date) {
-        ZonedDateTime dateTime = ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of(ZONE_DEFAULT));
+        ZonedDateTime dateTime = ZonedDateTime.ofInstant(date.toInstant(), TimezoneUtil.getSystem());
         setTimestampStr(DateTimeFormatter.ofPattern(DATE_FORMAT).format(dateTime));
     }
 
@@ -92,7 +89,7 @@ public class EditForm {
      * @return A date for saving the entered timestamp string
      */
     public Date getTimestamp() {
-        ZonedDateTime zDateTime = ZonedDateTime.of(getLocalDateTime(), ZoneId.of(ZONE_DEFAULT));
+        ZonedDateTime zDateTime = ZonedDateTime.of(getLocalDateTime(), TimezoneUtil.getHome());
         return Date.from(zDateTime.toInstant());
     }
 }

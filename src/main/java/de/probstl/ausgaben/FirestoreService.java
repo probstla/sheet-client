@@ -3,8 +3,6 @@ package de.probstl.ausgaben;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
@@ -70,12 +68,6 @@ public class FirestoreService {
 
 	/** Logger for this class */
 	private static final Logger LOG = LoggerFactory.getLogger(FirestoreService.class);
-
-	/** The system time zone where the application is running */
-	private final ZoneId m_SystemTimezone = ZoneId.systemDefault();
-
-	/** The time zone where the data was created */
-	private final ZoneId m_HomeTimezone = ZoneId.of("Europe/Berlin");
 
 	/**
 	 * Returns a existing or cached connection to the service
@@ -267,16 +259,12 @@ public class FirestoreService {
 		expense.setAmountDouble(document.getDouble(FIELD_AMOUNT));
 		expense.setPayment(document.getString(FIELD_PAYMENT));
 		expense.setBudget(document.getString(FIELD_BUDGET));
-
-		Instant originalTimestamp = document.getDate(FIELD_TIMESTAMP).toInstant();
-		LocalDateTime ldt = LocalDateTime.ofInstant(originalTimestamp, m_HomeTimezone);
-		ZonedDateTime zdt = ZonedDateTime.of(ldt, m_SystemTimezone);
-		expense.setTimestamp(Date.from(zdt.toInstant()));
+		expense.setTimestamp(TimezoneUtil.fromDocument(document.getDate(FIELD_TIMESTAMP).toInstant()));
 
 		LOG.debug(
 				"Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR for budget '{}'. System ZoneId is {}, Home ZoneId {}.",
 				document.getId(), document.getCreateTime(), expense.getTimestamp(), expense.getShop(),
-				expense.getAmountDouble(), expense.getBudget(), m_SystemTimezone, m_HomeTimezone);
+				expense.getAmountDouble(), expense.getBudget(), TimezoneUtil.getSystem(), TimezoneUtil.getHome());
 
 		return expense;
 	}
@@ -374,7 +362,8 @@ public class FirestoreService {
 
 		for (QueryDocumentSnapshot documentSnapshot : queryResult.getDocuments()) {
 			Instant timestamp = documentSnapshot.getTimestamp(FIELD_TIMESTAMP).toDate().toInstant();
-			Integer week = Integer.valueOf(timestamp.atZone(m_SystemTimezone).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+			Integer week = Integer
+					.valueOf(timestamp.atZone(TimezoneUtil.getSystem()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
 			BigDecimal value = BigDecimal.valueOf(documentSnapshot.getDouble(FIELD_AMOUNT));
 
 			Double sum = toReturn.get(week);
@@ -387,8 +376,8 @@ public class FirestoreService {
 		}
 
 		// Fill weeks without found expenses
-		ZonedDateTime currentDateTime = request.getBeginDate().toInstant().atZone(m_SystemTimezone);
-		while (currentDateTime.isBefore(request.getEndDate().toInstant().atZone(m_SystemTimezone))) {
+		ZonedDateTime currentDateTime = request.getBeginDate().toInstant().atZone(TimezoneUtil.getSystem());
+		while (currentDateTime.isBefore(request.getEndDate().toInstant().atZone(TimezoneUtil.getSystem()))) {
 			int currentWeek = currentDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
 			if (!toReturn.containsKey(Integer.valueOf(currentWeek))) {
 				toReturn.put(Integer.valueOf(currentWeek), Double.valueOf(0.0));
