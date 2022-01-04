@@ -3,7 +3,7 @@
 		"name": "Geschenkefond",
 		"description": "Ausgaben für Geschenke",
 		"amount": 0.0,
-		"messageRegex": ".*Geschenk.*"
+		"messageRegex": ".*(Geschenk|#geschenke).*"
 	},
 	{
 		"name": "52 Wochenchallenge",

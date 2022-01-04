@@ -15,3 +15,5 @@ buildNumber.properties
 userAccounts.properties
 .factorypath
 .settings/
+/*.json
+.settings/org.eclipse.jdt.apt.core.prefs

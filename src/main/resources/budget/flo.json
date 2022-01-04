@@ -9,7 +9,10 @@
 			"Wackerl",
 			"Frühmorgen",
 			"Rauchensteiner",
-			"Gschaider"
+			"Gschaider",
+			"Pollner",
+			"Oberpriller",
+			"Brotmacher"
 		]
 	},
 	{
@@ -25,7 +28,8 @@
 			"Gründl",
 			"Gumberger",
 			"Eierautomat",
-			"DM"
+			"DM",
+			"Tagwerk"
 		]
 	},
 	{
@@ -58,25 +62,9 @@
 		]
 	},
 	{
-		"name": "SoBu2020",
-		"description": "Ausgaben während dem Sommer BU 2020 in Zuffenhausen",
-		"amount": 240.0,
-		"shops": [
-			"Porsche",
-			"Sausalitos",
-			"Enchilada",
-			"Franca e Franco"
-		]
-	},
-	{
 		"name": "Offen",
 		"description": "Ausgaben auf die kein anderes Budget zutrifft",
 		"amount": 0.0,
 		"fallback": true
-	},
-	{
-		"name": "berlin2020",
-		"description": "Ausgaben im Urlaub Berlin 2020",
-		"amount": 0.0
 	}
 ]
