@@ -2,8 +2,6 @@ package de.probstl.ausgaben;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -34,10 +32,6 @@ public class ExpensesRestResource {
 	/** The service for reading and writing data to firestore */
 	@Autowired
 	private FirestoreService m_FirestoreService;
-
-	/** The service when the expense is also sent to AWS DynamoDB */
-	@Autowired
-	private AwsService m_AwsService;
 
 	@PostMapping(path = "/create")
 	public ResponseEntity<String> createAusgabe(@Valid @RequestBody Expense expense, Locale requestLocale,
@@ -73,16 +67,8 @@ public class ExpensesRestResource {
 			return new ResponseEntity<>(HttpStatus.OK);
 		}
 
-		Instant start = Instant.now();
-		try {
-			m_AwsService.sendExpense(expense);
-		} catch (Exception e) {
-			LOG.error("Error saving expense to AWS", e);
-		} finally {
-			long time = Duration.between(start, Instant.now()).toMillis();
-			LOG.info("AWS request finished after {} ms.", Long.valueOf(time));
-		}
-
+		// AWS Export removed with version 1.2.3!
+		
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }
