@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>de.probstl</groupId>
 	<artifactId>sheet-client</artifactId>
-	<version>1.2.3-SNAPSHOT</version>
+	<version>1.2.4-SNAPSHOT</version>
 	<name>sheet-client</name>
 	<description>JSON Webservice für die Weiterleitung nach Google Firebase</description>
 
