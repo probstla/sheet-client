@@ -1,3 +1,13 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "maven.terminal.customEnv": [
+        {
+            "environmentVariable": "awsAccessKeyId",
+            "value": "AKIAR6TMOYTHJFEQ7MQK"
+        },
+        {
+            "environmentVariable": "awsSecretAccessKey",
+            "value": "aJ747dWo19wilBunCOuRDh1WB+M4oumeIyWKtbUU"
+        }
+    ]
 }
