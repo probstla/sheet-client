@@ -35,6 +35,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -97,8 +98,13 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			return "redirect:/view/currentWeek";
 		}
 
+		if (req.getParameter("doSearch") != null && StringUtils.hasText(homeForm.getSearchText())) {
+			LOG.info("search string {}", homeForm.getSearchText());
+			return "redirect:/home";
+		}
+
 		String selectedMonth = homeForm.getSelectedMonth();
-		if (req.getParameter("gotoMonth") != null && !req.getParameter("gotoMonth").trim().isEmpty()) {
+		if (StringUtils.hasText(req.getParameter("gotoMonth"))) {
 			selectedMonth = req.getParameter("gotoMonth");
 		}
 
