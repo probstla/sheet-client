@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import de.probstl.ausgaben.aws.AwsService;
 import de.probstl.ausgaben.data.Expense;
 
 @RestController
