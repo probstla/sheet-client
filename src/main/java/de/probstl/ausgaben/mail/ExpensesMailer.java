@@ -1,6 +1,5 @@
 package de.probstl.ausgaben.mail;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -25,7 +24,6 @@ public class ExpensesMailer {
 	 * @param sender  The spring mail sender
 	 * @param builder The email content builder
 	 */
-	@Autowired
 	public ExpensesMailer(JavaMailSender sender, ExpensesContentBuilder builder) {
 		m_MailSender = sender;
 		m_MailContentBuilder = builder;

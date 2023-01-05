@@ -1,6 +1,5 @@
 package de.probstl.ausgaben.mail;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -20,7 +19,6 @@ public class ExpensesContentBuilder {
 	 * @param templateEngine The injected template enging for rendering the email
 	 *                       content
 	 */
-	@Autowired
 	public ExpensesContentBuilder(TemplateEngine templateEngine) {
 		this.templateEngine = templateEngine;
 	}
