@@ -10,27 +10,27 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Configures access to new expenses and overviews
  */
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfiguration {
 
 	private final Logger LOG = LoggerFactory.getLogger(WebSecurityConfiguration.class);
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.csrf().disable().authorizeRequests().anyRequest().authenticated().and().formLogin().loginPage("/login")
 				.permitAll().and().httpBasic();
+		return http.build();
 	}
 
 	@Bean
-	@Override
 	public UserDetailsService userDetailsService() {
 		Properties fromFile = new Properties();
 		try (FileInputStream in = new FileInputStream("/userAccounts.properties")) {
