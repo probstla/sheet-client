@@ -98,7 +98,11 @@ public class BudgetService {
 		final Collection<Budget> budgets = readDefinition(auth.getName());
 		final Optional<Budget> fallback = findFallback(budgets);
 
-		if (budgets != null && expense.getBudget() != null) {
+		if(budgets == null) {
+			return null;
+		}
+
+		if (expense.getBudget() != null) {
 			Optional<Budget> foundBudget = budgets.stream().filter(x -> x.getName().equalsIgnoreCase(expense.getBudget())).findFirst();
 			if(foundBudget.isPresent()) {
 				return foundBudget.get().getName();
