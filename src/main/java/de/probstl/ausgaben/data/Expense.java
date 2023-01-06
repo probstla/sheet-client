@@ -84,12 +84,7 @@ public class Expense {
 		if (getClass() != obj.getClass())
 			return false;
 		Expense other = (Expense) obj;
-		if (m_Id == null) {
-			if (other.m_Id != null)
-				return false;
-		} else if (!m_Id.equals(other.m_Id))
-			return false;
-		return true;
+		return m_Id.equals(other.m_Id);
 	}
 
 	/**
