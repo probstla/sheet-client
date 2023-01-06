@@ -102,6 +102,16 @@
                     </form>
                   </td>
                 </tr>
+                <tr>
+                  <td colspan="3">
+                    <form action="#" th:action="@{/overview}"
+                      th:object="${homeForm}" method="POST">
+                      <input type="text" th:field="*{searchText}" placeholder="search string" />
+                      <button type="submit" name="doSearch"
+                        th:text="#{home.doSearch}">doSearch</button>
+                    </form>
+                  </td>
+                </tr>
               </table>
             </td>
           </tr>

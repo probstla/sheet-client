@@ -17,3 +17,4 @@ userAccounts.properties
 .settings/
 /*.json
 .settings/org.eclipse.jdt.apt.core.prefs
+.vscode/settings.json
