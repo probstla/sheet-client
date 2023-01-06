@@ -10,6 +10,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -26,22 +27,30 @@ class AusgabenFirebaseApplicationTests {
 	@Test
 	void testFindCurrentWeek() {
 
-		LocalDate now = LocalDate.now();
+		final LocalDate now = LocalDate.now();
 		System.out.println(now);
 
-		LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-		LocalDateTime begin = LocalDateTime.of(monday, LocalTime.of(0, 0, 0));
-		LocalDateTime end = begin.plusDays(7);
+		final LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+		Assertions.assertNotNull(monday);
+
+		final LocalDateTime begin = LocalDateTime.of(monday, LocalTime.of(0, 0, 0));
+		final LocalDateTime end = begin.plusDays(7);
 		System.out.println(begin + " >= t <= " + end);
 	}
 
-	@Disabled
+	@Disabled("Only when needed")
 	@Test
 	void findAusgaben() {
 
 		LocalDate monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 		LocalDateTime begin = LocalDateTime.of(monday, LocalTime.of(0, 0, 0));
 		LocalDateTime end = begin.plusDays(7);
+
+		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
+		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
+
+		Assertions.assertNotNull(beginDate);
+		Assertions.assertNotNull(endDate);
 
 		FirestoreOptions firestoreOptions = FirestoreOptions.getDefaultInstance().toBuilder().setProjectId("probstl")
 				.build();
@@ -50,8 +59,9 @@ class AusgabenFirebaseApplicationTests {
 		try {
 			ApiFuture<QuerySnapshot> querySnapshot = service.collection("ausgaben")
 					.whereGreaterThan("timestamp",
-							Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant()))
-					.whereLessThan("timestamp", Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant()))
+							beginDate)
+					.whereLessThan("timestamp", 
+							endDate)
 					.orderBy("timestamp").get();
 
 			for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {

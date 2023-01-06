@@ -33,7 +33,7 @@ import de.probstl.ausgaben.mail.CityInfo;
 public class BudgetService {
 
 	/** Logger */
-	private static Logger m_Log = LoggerFactory.getLogger(BudgetService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BudgetService.class);
 
 	/** Once read the budgets for each user are stored in this map */
 	private final Map<String, Collection<Budget>> m_Budgets = Collections
@@ -98,13 +98,14 @@ public class BudgetService {
 		final Collection<Budget> budgets = readDefinition(auth.getName());
 		final Optional<Budget> fallback = findFallback(budgets);
 
-		if(budgets == null) {
+		if (budgets == null) {
 			return null;
 		}
 
 		if (expense.getBudget() != null) {
-			Optional<Budget> foundBudget = budgets.stream().filter(x -> x.getName().equalsIgnoreCase(expense.getBudget())).findFirst();
-			if(foundBudget.isPresent()) {
+			Optional<Budget> foundBudget = budgets.stream()
+					.filter(x -> x.getName().equalsIgnoreCase(expense.getBudget())).findFirst();
+			if (foundBudget.isPresent()) {
 				return foundBudget.get().getName();
 			}
 		}
@@ -151,7 +152,7 @@ public class BudgetService {
 			pattern = Pattern.compile(regex);
 			byRegex = findByRegex(pattern, expenses);
 		} catch (PatternSyntaxException e) {
-			m_Log.error(String.format("invalid pattern: %s", regex), e);
+			LOG.error(String.format("invalid pattern: %s", regex), e);
 		}
 
 		if (budget.getShops() != null && budget.getShops().length > 0) {
@@ -162,8 +163,9 @@ public class BudgetService {
 		}
 
 		// Add the expenses with a direct budget match to the returning set
-		toReturn.addAll(expenses.stream().filter(x -> budget.getName().equals(x.getBudget())).collect(Collectors.toSet()));
-		
+		toReturn.addAll(
+				expenses.stream().filter(x -> budget.getName().equals(x.getBudget())).collect(Collectors.toSet()));
+
 		// Add all unique expenses to the result
 		toReturn.addAll(byRegex);
 		toReturn.addAll(byShop);
@@ -192,7 +194,7 @@ public class BudgetService {
 					token = matcher.group(1);
 				}
 				String regex = pattern.pattern();
-				m_Log.info("expense {} with message '{}' matches regular expression '{}' with token: '{}'",
+				LOG.info("expense {} with message '{}' matches regular expression '{}' with token: '{}'",
 						expense.getId(), expense.getMessage(), regex, token);
 				toReturn.add(expense);
 			}
@@ -238,7 +240,7 @@ public class BudgetService {
 			budgets = mapper.readValue(stream, new TypeReference<List<Budget>>() {
 			});
 		} catch (IOException e) {
-			m_Log.error("error reading json for budget of user", e);
+			LOG.error("error reading json for budget of user", e);
 		}
 
 		if (budgets != null) {

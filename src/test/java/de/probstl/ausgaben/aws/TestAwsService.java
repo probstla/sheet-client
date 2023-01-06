@@ -24,7 +24,10 @@ public class TestAwsService {
     public void testSaveExpense() {
         Assertions.assertNotNull(toTest, "Service is null");
 
-        Expense expense = new Expense(UUID.randomUUID().toString());
+        final String id = UUID.randomUUID().toString();
+        Assertions.assertNotNull(id);
+
+        Expense expense = new Expense(id);
         expense.setAmount("3,49");
         expense.setAmountDouble(Double.valueOf(3.49));
         expense.setBudget("coffee");

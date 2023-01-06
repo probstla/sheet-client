@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -18,7 +19,16 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
+
 import com.google.api.core.ApiFuture;
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -26,12 +36,6 @@ import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Component;
 
 import de.probstl.ausgaben.data.Expense;
 import de.probstl.ausgaben.data.ExpensesRequest;
@@ -124,11 +128,6 @@ public class FirestoreService {
 			return false;
 		}
 
-		if (expense.getId() == null) {
-			LOG.warn("Expense has no Id");
-			return false;
-		}
-
 		Map<String, Object> fields = new HashMap<>();
 		fields.put(FIELD_AMOUNT, expense.getAmountDouble());
 
@@ -168,7 +167,7 @@ public class FirestoreService {
 	 * @return Returns <code>true</code> if the creation was successful otherwise
 	 *         <code>false</code>
 	 */
-	public boolean createExpense(Expense expense, Locale locale, String collection) {
+	public boolean createExpense(Expense expense, Locale locale, @Nonnull String collection) {
 
 		Map<String, Object> data = new HashMap<>();
 		data.put(FIELD_MESSAGE, expense.getMessage());
@@ -211,7 +210,7 @@ public class FirestoreService {
 	 * @param collection The collection from which the expense is loaded
 	 * @return An expense or null if the id was not found
 	 */
-	public Expense getExpense(String id, String collection) {
+	public Expense getExpense(@Nonnull String id, @Nonnull String collection) {
 		final Instant start = Instant.now();
 		Duration queryTime = null;
 
@@ -259,7 +258,13 @@ public class FirestoreService {
 		expense.setAmountDouble(document.getDouble(FIELD_AMOUNT));
 		expense.setPayment(document.getString(FIELD_PAYMENT));
 		expense.setBudget(document.getString(FIELD_BUDGET));
-		expense.setTimestamp(TimezoneUtil.fromDocument(document.getDate(FIELD_TIMESTAMP).toInstant()));
+
+		Date date = document.getDate(FIELD_TIMESTAMP);
+		if (date != null) {
+			expense.setTimestamp(TimezoneUtil.fromDocument(date.toInstant()));
+		} else {
+			throw new IllegalStateException("no timestamp in document found");
+		}
 
 		LOG.debug(
 				"Expense id '{}' created at '{}' with date '{}' from shop '{}' and amount '{}' EUR for budget '{}'. System ZoneId is {}, Home ZoneId {}.",
@@ -277,7 +282,7 @@ public class FirestoreService {
 	 * @param collection The collection
 	 * @return Amount of expenses in the interval
 	 */
-	public double findAmount(ExpensesRequest request, String collection) {
+	public double findAmount(ExpensesRequest request, @Nonnull String collection) {
 		final Instant start = Instant.now();
 		Duration queryTime = null;
 
@@ -326,13 +331,11 @@ public class FirestoreService {
 	 * @param collection The collection
 	 * @return Map of the week as key and the expense amount within the week
 	 */
-	public NavigableMap<Integer, Double> findByWeek(ExpensesRequest request, String collection) {
+	public NavigableMap<Integer, Double> findByWeek(ExpensesRequest request, @Nonnull String collection) {
 		final Instant start = Instant.now();
 		Duration queryTime = null;
 
 		LOG.info("Find expenses in week from {} in collection {}", request, collection);
-
-		final NavigableMap<Integer, Double> toReturn = new TreeMap<>();
 
 		QuerySnapshot queryResult = null;
 		try {
@@ -354,26 +357,13 @@ public class FirestoreService {
 		}
 
 		if (queryResult == null || queryResult.isEmpty()) {
-			return toReturn;
+			return Collections.emptyNavigableMap();
 		}
 
 		LOG.info("Query executed in {} ms. Snapshot timestamp: {}", Long.valueOf(queryTime.toMillis()),
 				queryResult.getReadTime());
 
-		for (QueryDocumentSnapshot documentSnapshot : queryResult.getDocuments()) {
-			Instant timestamp = documentSnapshot.getTimestamp(FIELD_TIMESTAMP).toDate().toInstant();
-			Integer week = Integer
-					.valueOf(timestamp.atZone(TimezoneUtil.getSystem()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
-			BigDecimal value = BigDecimal.valueOf(documentSnapshot.getDouble(FIELD_AMOUNT));
-
-			Double sum = toReturn.get(week);
-			if (sum == null) {
-				toReturn.put(week, Double.valueOf(value.doubleValue()));
-			} else {
-				double newValue = BigDecimal.valueOf(sum.doubleValue()).add(value).doubleValue();
-				toReturn.put(week, Double.valueOf(newValue));
-			}
-		}
+		final NavigableMap<Integer, Double> toReturn = processResults(queryResult.getDocuments());
 
 		// Fill weeks without found expenses
 		ZonedDateTime currentDateTime = request.getBeginDate().toInstant().atZone(TimezoneUtil.getSystem());
@@ -389,13 +379,55 @@ public class FirestoreService {
 	}
 
 	/**
+	 * Process the results and return a map with week and amount as return
+	 * 
+	 * @param documents Results
+	 * @return Map with the sum per week
+	 */
+	private @Nonnull NavigableMap<Integer, Double> processResults(@Nonnull List<QueryDocumentSnapshot> documents) {
+
+		final NavigableMap<Integer, Double> toReturn = new TreeMap<>();
+
+		for (QueryDocumentSnapshot documentSnapshot : documents) {
+
+			final Timestamp timestamp = documentSnapshot.getTimestamp(FIELD_TIMESTAMP);
+			if (timestamp == null) {
+				LOG.warn("No timestamp in document id {}. Skipped!", documentSnapshot.getId());
+				continue;
+			}
+
+			final Instant instantValue = timestamp.toDate().toInstant();
+			final Integer week = Integer
+					.valueOf(instantValue.atZone(TimezoneUtil.getSystem()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+
+			final Double amount = documentSnapshot.getDouble(FIELD_AMOUNT);
+			final BigDecimal value;
+			if (amount != null) {
+				value = BigDecimal.valueOf(amount.doubleValue());
+			} else {
+				value = BigDecimal.ZERO;
+			}
+
+			Double sum = toReturn.get(week);
+			if (sum == null) {
+				toReturn.put(week, Double.valueOf(value.doubleValue()));
+			} else {
+				double newValue = BigDecimal.valueOf(sum.doubleValue()).add(value).doubleValue();
+				toReturn.put(week, Double.valueOf(newValue));
+			}
+		}
+
+		return toReturn;
+	}
+
+	/**
 	 * Delete the expense with the given id
 	 * 
 	 * @param id         The id of the document that should be deleted
 	 * @param collection The collection where the id should be found
 	 * @return If successful true is returned
 	 */
-	public boolean deleteExpense(String id, String collection) {
+	public boolean deleteExpense(@Nonnull String id, @Nonnull String collection) {
 		LOG.info("Deleting expense with id {}", id);
 
 		final Instant start = Instant.now();
@@ -435,7 +467,7 @@ public class FirestoreService {
 	 * @return Collection of expenses. Never <code>null</code> but empty if there
 	 *         was an error or no data was found
 	 */
-	public Collection<Expense> findBetween(ExpensesRequest request, String collection) {
+	public Collection<Expense> findBetween(ExpensesRequest request, @Nonnull String collection) {
 		LOG.info("Find expenses from {} in collection {}", request, collection);
 
 		final Instant start = Instant.now();

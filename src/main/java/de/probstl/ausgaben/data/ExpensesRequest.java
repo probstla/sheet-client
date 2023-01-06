@@ -10,6 +10,8 @@ import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +24,10 @@ public class ExpensesRequest {
 	private static final Logger LOG = LoggerFactory.getLogger(ExpensesRequest.class);
 
 	/** Begin date for the expenses request interval */
-	private final Date m_BeginDate;
+	private final @Nonnull Date m_BeginDate;
 
 	/** End date for the expenses request interval */
-	private final Date m_EndDate;
+	private final @Nonnull Date m_EndDate;
 
 	/**
 	 * Create a new object spanning the current Month
@@ -40,6 +42,10 @@ public class ExpensesRequest {
 		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
 		LocalDateTime end = LocalDateTime.now();
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
+
+		if (beginDate == null || endDate == null) {
+			throw new IllegalStateException("illegal begin or end date");
+		}
 
 		return new ExpensesRequest(beginDate, endDate);
 	}
@@ -57,6 +63,10 @@ public class ExpensesRequest {
 		Date beginDate = Date.from(ZonedDateTime.of(begin, ZoneId.systemDefault()).toInstant());
 		LocalDateTime end = begin.plusMonths(1).minusMinutes(1);
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
+
+		if (beginDate == null || endDate == null) {
+			throw new IllegalStateException("illegal begin or end date");
+		}
 
 		return new ExpensesRequest(beginDate, endDate);
 	}
@@ -83,6 +93,10 @@ public class ExpensesRequest {
 		LocalDateTime end = begin.plusMonths(1).minusMinutes(1);
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
 
+		if (beginDate == null || endDate == null) {
+			throw new IllegalStateException("illegal begin or end date");
+		}
+
 		return new ExpensesRequest(beginDate, endDate);
 	}
 
@@ -100,6 +114,10 @@ public class ExpensesRequest {
 		LocalDateTime end = begin.plusDays(7).minusMinutes(1);
 		Date endDate = Date.from(ZonedDateTime.of(end, ZoneId.systemDefault()).toInstant());
 
+		if(beginDate == null || endDate == null){
+			throw new IllegalStateException("illegal begin or end date");
+		}
+
 		return new ExpensesRequest(beginDate, endDate);
 	}
 
@@ -109,7 +127,7 @@ public class ExpensesRequest {
 	 * @param begin Begin date of the request interval
 	 * @param end   End date of the request interval
 	 */
-	private ExpensesRequest(Date begin, Date end) {
+	private ExpensesRequest(@Nonnull Date begin, @Nonnull Date end) {
 		m_BeginDate = begin;
 		m_EndDate = end;
 	}
@@ -117,14 +135,14 @@ public class ExpensesRequest {
 	/**
 	 * @return the m_BeginDate
 	 */
-	public Date getBeginDate() {
+	public @Nonnull Date getBeginDate() {
 		return m_BeginDate;
 	}
 
 	/**
 	 * @return the m_EndDate
 	 */
-	public Date getEndDate() {
+	public @Nonnull Date getEndDate() {
 		return m_EndDate;
 	}
 

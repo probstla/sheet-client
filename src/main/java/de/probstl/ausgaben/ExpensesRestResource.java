@@ -41,7 +41,11 @@ public class ExpensesRestResource {
 			LOG.warn("No authority for user {} found. Showing empty data!", authentication.getName());
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
+
 		String collection = authority.get().getAuthority();
+		if(collection == null) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
 
 		LOG.info("Using collection {} for user {}", collection, authentication.getName());
 

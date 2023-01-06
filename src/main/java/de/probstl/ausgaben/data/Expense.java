@@ -2,6 +2,7 @@ package de.probstl.ausgaben.data;
 
 import java.util.Date;
 
+import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -37,7 +38,7 @@ public class Expense {
 	private String m_Payment;
 
 	/** The unique id of this expense */
-	private final String m_Id;
+	private final @Nonnull String m_Id;
 
 	/** The Budget this expense is for (submitted by Client) */
 	private String m_Budget;
@@ -47,7 +48,7 @@ public class Expense {
 	 * 
 	 * @param id The document id
 	 */
-	public Expense(String id) {
+	public Expense(@Nonnull String id) {
 		m_Id = id;
 	}
 
@@ -62,7 +63,7 @@ public class Expense {
 	/**
 	 * @return id
 	 */
-	public String getId() {
+	public @Nonnull String getId() {
 		return m_Id;
 	}
 

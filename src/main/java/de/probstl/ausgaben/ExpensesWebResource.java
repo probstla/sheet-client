@@ -25,6 +25,7 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -226,7 +227,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Template to show
 	 */
 	@GetMapping("/edit/{id}")
-	public String editExpense(@PathVariable(name = "id") String id, Model model, Authentication auth) {
+	public String editExpense(@PathVariable(name = "id") @Nonnull String id, Model model, Authentication auth) {
 		String collection = m_FirestoreService.extractCollection(auth);
 		if (collection != null) {
 			Expense expense = m_FirestoreService.getExpense(id, collection);
@@ -261,7 +262,8 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @return Template to show
 	 */
 	@PostMapping("/save/{id}")
-	public String saveExpense(@PathVariable(name = "id") String id, EditForm form, final HttpServletRequest req,
+	public String saveExpense(@PathVariable(name = "id") @Nonnull String id, EditForm form,
+			final HttpServletRequest req,
 			Authentication auth) {
 
 		final LocalDateTime dateTime = form.getLocalDateTime();
@@ -278,10 +280,13 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 			m_FirestoreService.updateExpense(expense, auth);
 		} else if (req.getParameter("delete") != null) {
 			String collection = m_FirestoreService.extractCollection(auth);
-			m_FirestoreService.deleteExpense(id, collection);
-			LOG.info("Expense with id {} was deleted", id);
+			if (collection != null) {
+				m_FirestoreService.deleteExpense(id, collection);
+				LOG.info("Expense with id {} was deleted", id);
+			} else {
+				LOG.warn("No collection found. Expense with id {} not deleted!", id);
+			}
 		}
-
 		return "redirect:/view/" + dateTime.getMonthValue() + "/" + dateTime.getYear();
 	}
 
@@ -468,7 +473,7 @@ public class ExpensesWebResource implements WebMvcConfigurer {
 	 * @param endDate   End date
 	 * @return Map of cities and expenses by city
 	 */
-	private Map<String, CityInfo> findExpensesByDate(String collection, ExpensesRequest request) {
+	private Map<String, CityInfo> findExpensesByDate(@Nonnull String collection, ExpensesRequest request) {
 
 		final Map<String, CityInfo> cityMapping = new HashMap<>();
 
