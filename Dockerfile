@@ -1,6 +1,6 @@
 FROM azul/zulu-openjdk-debian:11
-RUN addgroup -S spring && adduser -S spring -G spring
-#RUN groupadd spring && useradd -g spring spring
+#RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd spring && useradd -g spring spring
 RUN apk --no-cache add curl \
     && curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin \
     && trivy filesystem --severity HIGH,CRITICAL --exit-code 1 --no-progress /
