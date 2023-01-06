@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jre-alpine
+FROM azul/zulu-openjdk-debian:11
 RUN addgroup -S spring && adduser -S spring -G spring
 #RUN groupadd spring && useradd -g spring spring
 RUN apk --no-cache add curl \
