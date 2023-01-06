@@ -48,3 +48,10 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: probstl/ausgaben-firebase:latest
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.8.0
+        with:
+          image-ref: 'docker.io/probstl/ausgaben-firebase:latest'
+          severity: 'CRITICAL,HIGH'
+          format: 'github'
+          exit-code: '0'
